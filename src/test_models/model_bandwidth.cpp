@@ -343,6 +343,7 @@ void run_underlay_bandwidth_server(int port)
     close(server_sock);
 }
 
+#ifdef WITH_DAAS
 //Return a node based on the setup.
 DaasAPI* setupNode(daas_setup_t *daas_setup){
 
@@ -419,3 +420,4 @@ void run_overlay_bandwidth_server(daas_setup_t *daas_setup){
         usleep(1000);
     }
 }
+#endif

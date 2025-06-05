@@ -4,8 +4,11 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+
+#ifdef WITH_DAAS
 #include "daas.hpp"
 #include "daas_types.hpp"
+#endif
 
 #define MAX_LINE_LEN 256
 #define MAX_LINKS 5
@@ -40,6 +43,7 @@ typedef struct {
     bool version;
 } program_args_t;
 
+#ifdef WITH_DAAS
 typedef struct {
 
     link_t links[MAX_LINKS];
@@ -118,13 +122,16 @@ class daasEvent : public IDaasApiEvent {
     DaasAPI* node_;
 
 };
+#endif
 
 
 // ====================================== PARSING UTIL ===================================================== //
 
+#ifdef WITH_DAAS
 link_t parse_link_type(int val);
+bool parse_daas_ini(const char* filepath, daas_setup_t *setup);
+#endif
 void print_usage(const char *prog_name);
 void print_options(const char *prog_name);
-bool parse_daas_ini(const char* filepath, daas_setup_t *setup);
 void parse_args(int argc, char *argv[], program_args_t *args);
 int validate_args(program_args_t *args, const char *prog_name);

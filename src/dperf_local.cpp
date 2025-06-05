@@ -1,6 +1,6 @@
 #include "dperf_local.hpp"
 
-
+#ifdef WITH_DAAS
 link_t parse_link_type(int val) {
     if (val >= _LINK_NONE && val < LINK_MAX_VAL){
         return (link_t)val;
@@ -9,6 +9,7 @@ link_t parse_link_type(int val) {
         return _LINK_NONE; 
     }     
 }
+#endif
 
 void print_usage(const char *prog_name)
 {
@@ -38,6 +39,7 @@ void print_options(const char *prog_name)
     printf("\n");
 }
 
+#ifdef WITH_DAAS
 bool parse_daas_ini(const char* filepath, daas_setup_t *setup) {
     FILE* file = fopen(filepath, "r");
     if (!file) {
@@ -99,6 +101,7 @@ bool parse_daas_ini(const char* filepath, daas_setup_t *setup) {
     fclose(file);
     return true;
 }
+#endif
 
 void parse_args(int argc, char *argv[], program_args_t *args) {
     memset(args, 0, sizeof(*args));
