@@ -14,8 +14,10 @@
 #include "../dperf_local.hpp"
 
 //DaaS Headers
+#ifdef WITH_DAAS
 #include "daas.hpp"
 #include "daas_types.hpp"
+#endif
 
 void run_underlay_bandwidth_client(const char *ip, int port, size_t block_size, size_t mtu, const char *csv_file, int repetitions, bool formatting_output_csv);
 void run_underlay_bandwidth_server(int port);

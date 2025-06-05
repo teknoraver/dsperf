@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project(dperf VERSION 0.0.32 LANGUAGES C CXX)
 
+# Abilitazione di compilazione condizionata NODAAS
+option(NODAAS "Exclude libdaas library" OFF)
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -21,7 +24,7 @@ configure_file(
     @ONLY
 )
 
-set(SOURCES 
+set(SOURCES
     ${LOOPBACK_DIR}/main.cpp
     ${SYSTEM_INFO_DIR}/system_info.c
     ${LOOPBACK_DIR}/test_models/model_bandwidth.cpp
@@ -30,6 +33,14 @@ set(SOURCES
     ${LOOPBACK_DIR}/dperf_local.cpp
 )
 
+# Aggiunge facoltativamente libdaas headers and sources
+if(NOT NODAAS)
+    list(APPEND HEADERS
+        ${INC_DIR}/daas.hpp
+        ${INC_DIR}/daas_types.hpp
+    )
+endif()
+
 set(HEADERS
     ${LOOPBACK_DIR}/test_models/model_bandwidth.h
     ${LOOPBACK_DIR}/timer.h
@@ -37,24 +48,35 @@ set(HEADERS
     ${LOOPBACK_DIR}/version.h
     ${LOOPBACK_DIR}/block_runner.h
     ${LOOPBACK_DIR}/dperf_local.hpp
-    ${INC_DIR}/daas.hpp
-    ${INC_DIR}/daas_types.hpp
+    # NOT IMPLEMENTED FILES
+    # ${INC_DIR}/daas.hpp
+    # ${INC_DIR}/daas_types.hpp
 )
 
 add_executable(dperf
     ${SOURCES}
-    ${HEADERS}  
+    ${HEADERS}
 )
 
 target_link_libraries(
-    dperf 
+    dperf
     PRIVATE ${LIB_DIR}/libdaas.a
     PRIVATE pthread
     PRIVATE bluetooth
 )
 
+# Link libdaas solo se NODAAS è OFF
+if(NOT NODAAS)
+    target_link_libraries(dperf PRIVATE ${LIB_DIR}/libdaas.a)
+    target_compile_definitions(dperf PRIVATE "WITH_DAAS")
+endif()
+
 target_include_directories(dperf PRIVATE
     ${SYSTEM_INFO_DIR}
     ${LOOPBACK_DIR}
-    ${INC_DIR}
 )
+
+# Aggiunge la daas directory solo se necessario
+if(NOT NODAAS)
+    target_include_directories(dperf PRIVATE ${INC_DIR})
+endif()

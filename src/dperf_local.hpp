@@ -4,8 +4,11 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+
+#ifdef WITH_DAAS
 #include "daas.hpp"
 #include "daas_types.hpp"
+#endif
 
 #define MAX_LINE_LEN 256
 #define MAX_LINKS 5
