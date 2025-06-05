@@ -117,6 +117,10 @@ Run the following commands in root directory
 cmake .
 cmake --build .
 ```
+You can choose to not link DaaS with
+```bash
+cmake -DNODAAS=ON .
+```
 Then you can run the executable `dperf`!
 
 ## Examples
