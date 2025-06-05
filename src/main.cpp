@@ -68,8 +68,11 @@
 
 void start_underlay_server(int port, int block_size, int packet_size, int num_pings, int run_mode, int repetitions);
 void start_underlay_client(const char *host, int block_size, int packet_size, int num_pings, const char *csv_path, int run_mode, int repetitions, bool run_block_client);
+
+#ifdef WITH_DAAS
 void start_daas_client(daas_setup_t *setup, int blocksize, int packetsize, int repetitions,  const char *csv_path, bool formatting_output_csv);
 void start_daas_server(daas_setup_t *setup);
+#endif
 
 double now_sec()
 {
@@ -139,17 +142,23 @@ void start_underlay_client(const char *host, int block_size, int packet_size, in
     }
     }
 }
-
+#ifdef WITH_DAAS
 void start_daas_server(daas_setup_t *setup)
 {
+
     run_overlay_bandwidth_server(setup);
+
 }
 
 void start_daas_client(daas_setup_t *setup, int blocksize, int packetsize, int repetitions,  const char *csv_path, bool formatting_output_csv)
 {
 
     run_overlay_bandwidth_client(setup, blocksize, packetsize, repetitions, csv_path, formatting_output_csv);
+
+    printf("Daas not included\n");
+
 }
+#endif
 
 
 
@@ -157,21 +166,22 @@ int main(int argc, char *argv[])
 {
 
     program_args_t args;
+#ifdef WITH_DAAS
     daas_setup_t daas_setup;
-
+#endif
     parse_args(argc, argv, &args);
 
     if (validate_args(&args, argv[0]) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
-
+#ifdef WITH_DAAS
      if (args.layer_mode == 1) {
         if (!parse_daas_ini(args.overlay_path, &daas_setup)) {
             fprintf(stderr, "Error: Failed to parse .ini overlay file.\n");
             return EXIT_FAILURE;
         }
     }
-
+#endif
     if (args.csv_enabled)
 {
     FILE *f = fopen(args.csv_path, "w");
@@ -219,14 +229,19 @@ int main(int argc, char *argv[])
     }
     else
     {
+#ifdef WITH_DAAS
         if (args.is_sender)
         {
+
             start_daas_client(&daas_setup, args.block_size, args.packet_size, args.repetitions, args.csv_path, args.csv_enabled);
         }
         else
         {
             start_daas_server(&daas_setup);
         }
+#else
+	printf("Daas not included\n");
+#endif
     }
 
     return EXIT_SUCCESS;
