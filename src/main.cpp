@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
     {
         if (args.is_sender)
         {
-            start_underlay_client(args.remote_ip, args.block_size, args.packet_size, args.pings, args.csv_path, args.run_mode, args.repetitions, args.csv_enabled);
+            start_underlay_client(args.remote_ip, args.block_size, args.packet_size, args.pings, args.csv_path, args.run_mode, args.repetitions, args.csv_format);
         }
         else
         {
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
         if (args.is_sender)
         {
 
-            start_daas_client(&daas_setup, args.block_size, args.packet_size, args.repetitions, args.csv_path, args.csv_enabled);
+            start_daas_client(&daas_setup, args.block_size, args.packet_size, args.repetitions, args.csv_path, args.csv_format);
         }
         else
         {
