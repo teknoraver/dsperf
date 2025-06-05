@@ -66,11 +66,11 @@
 
 
 
-void start_underlay_server(int port, int block_size, int packet_size, int num_pings, int run_mode, int repetitions);
-void start_underlay_client(const char *host, int block_size, int packet_size, int num_pings, const char *csv_path, int run_mode, int repetitions, bool run_block_client);
+void start_underlay_server(program_args_t *test);
+void start_underlay_client(program_args_t *test);
 
 #ifdef WITH_DAAS
-void start_daas_client(daas_setup_t *setup, int blocksize, int packetsize, int repetitions,  const char *csv_path, bool formatting_output_csv);
+void start_daas_client(daas_setup_t *setup, program_args_t *test);
 void start_daas_server(daas_setup_t *setup);
 #endif
 
@@ -82,28 +82,28 @@ double now_sec()
 }
 
 
-void start_underlay_server(int port, int block_size, int packet_size, int num_pings, int run_mode, int repetitions)
+void start_underlay_server(program_args_t *test)
 {
-    switch (run_mode)
+    switch (test->run_mode)
     {
     case 0:
     {
-        run_underlay_bandwidth_server(port);
+        run_underlay_bandwidth_server(test->port);
         break;
     }
     case 1:
     {
-        run_rtt_server(port, packet_size);
+        run_rtt_server(test->port, test->packet_size);
         break;
     }
     }
 }
 
-void start_underlay_client(const char *host, int block_size, int packet_size, int num_pings, const char *csv_path, int run_mode, int repetitions, bool formatting_output_csv)
+void start_underlay_client(program_args_t *test)
 {
     char ip[64];
     int port;
-
+    const char* host = test->remote_ip;
     const char *colon = strchr(host, ':');
     if (colon == NULL)
     {
@@ -122,22 +122,22 @@ void start_underlay_client(const char *host, int block_size, int packet_size, in
         return;
     }
 
-    if (!formatting_output_csv)
+    if (!test->csv_format)
     {
         printf("dperf started as client to %s:%d with %s size %d\n",
-               ip, port, (block_size > 0) ? "block" : "packet",
-               (block_size > 0) ? block_size : packet_size);
+               ip, port, (test->block_size > 0) ? "block" : "packet",
+               (test->block_size > 0) ? test->block_size : test->packet_size);
     }
-    switch (run_mode)
+    switch (test->run_mode)
     {
     case 0:
     {
-        run_underlay_bandwidth_client(ip, port, block_size, 1500, csv_path, repetitions, formatting_output_csv);
+        run_underlay_bandwidth_client(test, ip, port);
         break;
     }
     case 1:
     {
-        run_rtt_client(ip, port, packet_size, num_pings);
+        run_rtt_client(ip, port, test->packet_size, test->pings);
         break;
     }
     }
@@ -150,10 +150,10 @@ void start_daas_server(daas_setup_t *setup)
 
 }
 
-void start_daas_client(daas_setup_t *setup, int blocksize, int packetsize, int repetitions,  const char *csv_path, bool formatting_output_csv)
+void start_daas_client(daas_setup_t *setup, program_args_t *test)
 {
 
-    run_overlay_bandwidth_client(setup, blocksize, packetsize, repetitions, csv_path, formatting_output_csv);
+    run_overlay_bandwidth_client(setup, test->block_size, test->packet_size , test->repetitions, test->csv_path, test->csv_format);
 
     printf("Daas not included\n");
 
@@ -220,11 +220,11 @@ int main(int argc, char *argv[])
     {
         if (args.is_sender)
         {
-            start_underlay_client(args.remote_ip, args.block_size, args.packet_size, args.pings, args.csv_path, args.run_mode, args.repetitions, args.csv_format);
+            start_underlay_client(&args);
         }
         else
         {
-            start_underlay_server(args.port, args.block_size, args.packet_size, args.pings, args.run_mode, args.repetitions);
+            start_underlay_server(&args);
         }
     }
     else
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
         if (args.is_sender)
         {
 
-            start_daas_client(&daas_setup, args.block_size, args.packet_size, args.repetitions, args.csv_path, args.csv_format);
+            start_daas_client(&daas_setup, &args);
         }
         else
         {

@@ -31,6 +31,10 @@ typedef struct {
     int layer_mode;           // -1 = unset, 0 = underlay, 1 = overlay
     int run_mode;             // -1 = unset, 0 = blocksize, 1 = packet-size
     int block_size;
+    int mtu_size;
+    bool mtu_defined;
+    int time;
+    bool time_defined;
     int packet_size;
     int repetitions;
     int pings;

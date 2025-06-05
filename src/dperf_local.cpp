@@ -109,6 +109,10 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
     args->layer_mode = -1;
     args->run_mode = -1;
     args->block_size = 0;
+    args->mtu_defined = false;
+    args->mtu_size = 1500;
+    args->time = 0;
+    args->time_defined = false;
     args->packet_size = 0;
     args->repetitions = 1;
     args->csv_enabled = false;
@@ -125,7 +129,7 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
 
     int option_index = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "S:s:n:c:f:vy", long_options, &option_index))) {
+    while ((c = getopt_long(argc, argv, "S:s:n:m:t:c:f:vy", long_options, &option_index))) {
         if (c == -1) break;
 
         switch (c) {
@@ -148,6 +152,9 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
             case 'n':
                 args->repetitions = atoi(optarg);
                 break;
+            case 'm':
+                args->mtu_defined = true;
+                args->mtu_size = atoi(optarg);
             case 'c':
                 args->pings = atoi(optarg);
                 break;
@@ -210,6 +217,7 @@ int validate_args(program_args_t *args, const char *prog_name) {
         return EXIT_FAILURE;
     }
 
+
     if (args->layer_mode == -1) {
         fprintf(stderr, "Error: Must specify either --underlay or --daas\n");
         return EXIT_FAILURE;
@@ -220,10 +228,26 @@ int validate_args(program_args_t *args, const char *prog_name) {
         return EXIT_FAILURE;
     }
 
+    if(args->mtu_defined && args->mtu_size < 1){
+        fprintf(stderr, "MTU Should not be 0 or less\n");
+        return EXIT_FAILURE;
+    }
+
+    if(args->time_defined && args->time < 1){
+        fprintf(stderr, "Time Should not be 0 or less\n");
+        return EXIT_FAILURE;
+    }
+
+
     // Client-specific validations
     if (args->is_sender == 1) {
         if (args->run_mode == 1 && args->packet_size <= 0) {
             fprintf(stderr, "Error: Client must specify positive packet size with --packet-size\n");
+            return EXIT_FAILURE;
+        }
+
+        if(args->run_mode == 0 && args->block_size <= 0){
+            fprintf(stderr, "Error: Client must specify positive block size with --blocksize\n");
             return EXIT_FAILURE;
         }
     }
