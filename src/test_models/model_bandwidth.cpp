@@ -397,7 +397,11 @@ DaasAPI* setupNode(daas_setup_t *daas_setup){
     return node;
 
 }
-void run_overlay_bandwidth_client(daas_setup_t *daas_setup, int block_size, int packetsize, int repetitions, const char *csv_path, bool formatting_output_csv){
+void run_overlay_bandwidth_client(daas_setup_t *daas_setup, program_args_t *test){
+
+    int block_size = test->block_size;
+    int packet_size = test->packet_size;
+    int repetitions = test->repetitions;
     
     DaasAPI* node = setupNode(daas_setup);
     if(node == nullptr) return;
@@ -411,7 +415,7 @@ void run_overlay_bandwidth_client(daas_setup_t *daas_setup, int block_size, int 
     if(node-> locate(remote_din)!=ERROR_NONE) return;
     for(int i=0;i<repetitions;i++){
         printf("Sending Test: %i\n", i+1);
-        node -> frisbee_dperf(remote_din, 2, block_size, 0);
+        node -> frisbee_dperf(remote_din, 1, block_size, 0);
         usleep(3000000);
     }
 

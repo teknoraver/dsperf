@@ -153,9 +153,7 @@ void start_daas_server(daas_setup_t *setup)
 void start_daas_client(daas_setup_t *setup, program_args_t *test)
 {
 
-    run_overlay_bandwidth_client(setup, test->block_size, test->packet_size , test->repetitions, test->csv_path, test->csv_format);
-
-    printf("Daas not included\n");
+    run_overlay_bandwidth_client(setup, test);
 
 }
 #endif
