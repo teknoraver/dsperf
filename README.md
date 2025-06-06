@@ -1,6 +1,6 @@
 # dperf - DaaS Network Performance Tool
 
-**Versione:** 0.0.33
+**Versione:** 0.0.34
 
 ## Authors:
 - sebastiano.meduri@gmail.com
