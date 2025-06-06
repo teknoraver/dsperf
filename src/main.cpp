@@ -99,7 +99,7 @@ void start_underlay_server(int port, int block_size, int packet_size, int num_pi
     }
 }
 
-void start_underlay_client(const char *host, int block_size, int packet_size, int num_pings, const char *csv_path, int run_mode, int repetitions, bool formatting_output_csv)
+void start_underlay_client(const char *host, int block_size, int packet_size, int num_pings, const char *csv_path, int run_mode, int repetitions, bool formatting_output_csv, bool csv_no_header)
 {
     char ip[64];
     int port;
@@ -132,7 +132,7 @@ void start_underlay_client(const char *host, int block_size, int packet_size, in
     {
     case 0:
     {
-        run_underlay_bandwidth_client(ip, port, block_size, 1500, csv_path, repetitions, formatting_output_csv);
+        run_underlay_bandwidth_client(ip, port, block_size, 1448, csv_path, repetitions, formatting_output_csv, csv_no_header);
         break;
     }
     case 1:
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
     {
         if (args.is_sender)
         {
-            start_underlay_client(args.remote_ip, args.block_size, args.packet_size, args.pings, args.csv_path, args.run_mode, args.repetitions, args.csv_format);
+            start_underlay_client(args.remote_ip, args.block_size, args.packet_size, args.pings, args.csv_path, args.run_mode, args.repetitions, args.csv_format, args.csv_no_header);
         }
         else
         {
