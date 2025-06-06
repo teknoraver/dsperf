@@ -362,15 +362,16 @@ DaasAPI* setupNode(daas_setup_t *daas_setup){
     static_cast<daasEvent*>(dummyHandler)->setNode(node);
 
     din_t node_din = daas_setup->local_din;
+    printf("Local DIN = %i\n", node_din);
 
     link_setup_t links = daas_setup->links;
     link_t* link_list = links.links;
-    const char** uri_list = links.uris;
+    char** uri_list = links.uris;
     
     map_setup_t maps = daas_setup->maps;
     din_t* remote_dins_list = maps.remote_dins;
     link_t* remote_link_list = maps.remote_links;
-    const char** remote_uri_list = maps.uris;
+    char** remote_uri_list = maps.uris;
 
     if(node -> doInit(100, node_din) != ERROR_NONE)
         return nullptr;
@@ -405,6 +406,7 @@ void run_overlay_bandwidth_client(daas_setup_t *daas_setup, int block_size, int 
 
     //first mapped din for semplicity
     din_t remote_din = node->listNodes()[0];
+    printf("Remote Din: %i\n", remote_din);
 
     if(node-> locate(remote_din)!=ERROR_NONE) return;
     for(int i=0;i<repetitions;i++){

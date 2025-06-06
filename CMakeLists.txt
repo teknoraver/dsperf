@@ -7,8 +7,8 @@ option(NODAAS "Exclude libdaas library" OFF)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 
 # Directory dei sorgenti
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -46,7 +46,6 @@ set(HEADERS
     ${LOOPBACK_DIR}/timer.h
     ${LOOPBACK_DIR}/rtt_runner.h
     ${LOOPBACK_DIR}/version.h
-    ${LOOPBACK_DIR}/block_runner.h
     ${LOOPBACK_DIR}/dperf_local.hpp
     # NOT IMPLEMENTED FILES
     # ${INC_DIR}/daas.hpp

@@ -51,7 +51,7 @@ typedef struct {
 typedef struct {
 
     link_t links[MAX_LINKS];
-    const char* uris[MAX_LINKS];
+    char* uris[MAX_LINKS];
 
 } link_setup_t;
 
@@ -59,7 +59,7 @@ typedef struct {
 
     din_t remote_dins[MAX_REMOTE_LINKS];
     link_t remote_links[MAX_REMOTE_LINKS];
-    const char* uris[MAX_REMOTE_LINKS];
+    char* uris[MAX_REMOTE_LINKS];
 
 } map_setup_t;
 
