@@ -19,10 +19,10 @@
 #include "daas_types.hpp"
 #endif
 
-void run_underlay_bandwidth_client(const char *ip, int port, size_t block_size, size_t mtu, const char *csv_file, int repetitions, bool formatting_output_csv, bool csv_no_header);
+void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, int server_port);
 void run_underlay_bandwidth_server(int port);
 
 #ifdef WITH_DAAS
-void run_overlay_bandwidth_client(daas_setup_t *setup, int blocksize, int packetsize, int repetitions, const char *csv_file,  bool formatting_output_csv);
+void run_overlay_bandwidth_client(daas_setup_t *setup, program_args_t *test);
 void run_overlay_bandwidth_server(daas_setup_t *setup);
 #endif

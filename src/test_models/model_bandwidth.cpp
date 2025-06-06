@@ -15,10 +15,24 @@ static double get_time_microseconds()
     return ts.tv_sec * 1e6 + ts.tv_nsec / 1000;
 }
 
-void run_underlay_bandwidth_client(const char *server_ip, int server_port, size_t block_size, size_t mtu, const char *csv_path, int repetitions, bool formatting_output_csv, bool csv_no_header)
+
+void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, int server_port)
 {
 
-    if (formatting_output_csv & !csv_no_header)
+    size_t block_size = test->block_size;
+    size_t mtu = test->mtu_size;
+    const char *csv_path = test->csv_path;
+    int repetitions = test->repetitions;
+    bool formatting_output_csv = test->csv_format;
+    bool mtu_defined = test->mtu_defined;
+    int mtu_size = test->mtu_size;
+    int time = test->time;
+    bool time_defined = test->time_defined;
+
+    const uint64_t target_bitrate_bps = 10 * 1000 * 1000; // 10 Mbps
+
+    if (formatting_output_csv)
+
     {
         printf("#/#\t");
         printf("Data Block [MB]\t");
@@ -62,23 +76,19 @@ void run_underlay_bandwidth_client(const char *server_ip, int server_port, size_
         // Get MSS
         int mss = 0;
         socklen_t optlen = sizeof(mss);
-        if (getsockopt(sock, IPPROTO_TCP, TCP_MAXSEG, &mss, &optlen) == 0)
-        {
-            // printf("[CLIENT] MSS negotiated: %d bytes\n", mss);
+        if(!mtu_defined){
+            getsockopt(sock, IPPROTO_TCP, TCP_MAXSEG, &mss, &optlen);
+        } else {
+            mss = mtu_size - 40;
         }
-    /*
-        else {
-            perror("getsockopt");
-            mss = 1448;
-        }
-        if (mss > 1448) {
-            printf("[CLIENT] Warning: MSS (%d) > 1448; using 1448 for safety.\n", mss);
-            mss = 1448;
-        }
-    */
+            
         int chunk_size = (mss < block_size) ? mss : block_size;
         char *buffer = (char *)malloc(chunk_size);
         memset(buffer, 'A', chunk_size);
+
+        int bufsize = 2 * 1024 * 1024; // 2 MB
+        setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(bufsize));
+        setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
 
         FILE *csv = fopen(csv_path, i == 0 ? "w" : "a");
         int csv_enabled = 1;
@@ -134,7 +144,7 @@ void run_underlay_bandwidth_client(const char *server_ip, int server_port, size_
 
         int packet_num = 0;
         int total_sent = 0;
-        unsigned int interval_us = 1000; // Interval between packets (1ms)
+        unsigned int interval_us = 0; // Interval between packets (1ms)
 
         dperf_timer_t *timer = dperf_timer_create(interval_us);
         double start_time = get_time_microseconds();
@@ -142,36 +152,36 @@ void run_underlay_bandwidth_client(const char *server_ip, int server_port, size_
         dperf_timer_start(timer);
 
 
+        double start_time_def = get_time_microseconds();
+        double end_time_def = start_time + time * 1e6; // 'time' è in secondi
 
-        while (total_sent < block_size)
-        {
+        double curr_time = start_time_def;
+
+        while ((time_defined && curr_time < end_time_def) ||
+            (!time_defined && total_sent < block_size)) {
+
             if (!dperf_timer_wait_tick(timer)) {
                 break;
             }
-            //printf("PACKET TIMESTAMP (us): %.9f\n", get_time_microseconds());
+            int to_send;
 
-            int to_send = block_size - total_sent;
-            if (to_send > chunk_size)
+            if(!time_defined){
+                to_send = block_size - total_sent;
+                if (to_send > chunk_size)
+                    to_send = chunk_size;
+            }else{
                 to_send = chunk_size;
+            }
 
             ssize_t sent = send(sock, buffer, to_send, 0);
             if (sent <= 0)
                 break;
 
-            // double now = get_time_microseconds();
-            // double delta_us = now - last_time;
-            // double delta_sec = delta_us / 1e6;
-            // double throughput_MBps = (sent / 1e6) / (delta_sec > 0 ? delta_sec : 1e-9);
-            // printf("[+%.6f s] Sent %zd bytes (%.3f MB/s)\n", (now - start_time) / 1e6, sent, throughput_MBps);
-            //  Salvare i dati in memoria e salvare sul file al termine del processo di trasferimento
-            /*
-            if(csv_enabled==1){
-                fprintf(csv, "%.3f,%d,%zd,%.4f,%.6f\n", (now - start_time) / 1000, packet_num, sent, throughput_MBps, rtt_ms);
-            }
-            */
             total_sent += sent;
-            // last_time = now;
             packet_num++;
+
+            if (time_defined)
+                curr_time = get_time_microseconds(); 
         }
         double end_time = get_time_microseconds();
         dperf_timer_stop(timer);
@@ -355,15 +365,16 @@ DaasAPI* setupNode(daas_setup_t *daas_setup){
     static_cast<daasEvent*>(dummyHandler)->setNode(node);
 
     din_t node_din = daas_setup->local_din;
+    printf("Local DIN = %i\n", node_din);
 
     link_setup_t links = daas_setup->links;
     link_t* link_list = links.links;
-    const char** uri_list = links.uris;
+    char** uri_list = links.uris;
     
     map_setup_t maps = daas_setup->maps;
     din_t* remote_dins_list = maps.remote_dins;
     link_t* remote_link_list = maps.remote_links;
-    const char** remote_uri_list = maps.uris;
+    char** remote_uri_list = maps.uris;
 
     if(node -> doInit(100, node_din) != ERROR_NONE)
         return nullptr;
@@ -389,7 +400,11 @@ DaasAPI* setupNode(daas_setup_t *daas_setup){
     return node;
 
 }
-void run_overlay_bandwidth_client(daas_setup_t *daas_setup, int block_size, int packetsize, int repetitions, const char *csv_path, bool formatting_output_csv){
+void run_overlay_bandwidth_client(daas_setup_t *daas_setup, program_args_t *test){
+
+    int block_size = test->block_size;
+    int packet_size = test->packet_size;
+    int repetitions = test->repetitions;
     
     DaasAPI* node = setupNode(daas_setup);
     if(node == nullptr) return;
@@ -398,11 +413,12 @@ void run_overlay_bandwidth_client(daas_setup_t *daas_setup, int block_size, int 
 
     //first mapped din for semplicity
     din_t remote_din = node->listNodes()[0];
+    printf("Remote Din: %i\n", remote_din);
 
     if(node-> locate(remote_din)!=ERROR_NONE) return;
     for(int i=0;i<repetitions;i++){
         printf("Sending Test: %i\n", i+1);
-        node -> frisbee_dperf(remote_din, 2, block_size, 0);
+        node -> frisbee_dperf(remote_din, 1, block_size, 0);
         usleep(3000000);
     }
 

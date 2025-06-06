@@ -31,6 +31,10 @@ typedef struct {
     int layer_mode;           // -1 = unset, 0 = underlay, 1 = overlay
     int run_mode;             // -1 = unset, 0 = blocksize, 1 = packet-size
     int block_size;
+    int mtu_size;
+    bool mtu_defined;
+    int time;
+    bool time_defined;
     int packet_size;
     int repetitions;
     int pings;
@@ -48,7 +52,7 @@ typedef struct {
 typedef struct {
 
     link_t links[MAX_LINKS];
-    const char* uris[MAX_LINKS];
+    char* uris[MAX_LINKS];
 
 } link_setup_t;
 
@@ -56,7 +60,7 @@ typedef struct {
 
     din_t remote_dins[MAX_REMOTE_LINKS];
     link_t remote_links[MAX_REMOTE_LINKS];
-    const char* uris[MAX_REMOTE_LINKS];
+    char* uris[MAX_REMOTE_LINKS];
 
 } map_setup_t;
 
