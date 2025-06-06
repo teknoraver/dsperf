@@ -15,6 +15,7 @@ static double get_time_microseconds()
     return ts.tv_sec * 1e6 + ts.tv_nsec / 1000;
 }
 
+
 void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, int server_port)
 {
 
@@ -31,6 +32,7 @@ void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, 
     const uint64_t target_bitrate_bps = 10 * 1000 * 1000; // 10 Mbps
 
     if (formatting_output_csv)
+
     {
         printf("#/#\t");
         printf("Data Block [MB]\t");
@@ -186,14 +188,15 @@ void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, 
         dperf_timer_destroy(timer);
         
         double elapsed_ms = (end_time - start_time) / 1000; // us -> ms
+        double elapsed_s = elapsed_ms / 1000;
 
         // Dopo aver effettuato il test, posso ottenere il numero di pacchetti persi soltanto ricevendo il numero effettivo che ha raggiunto il server
         // Ovvero il server risponde con il numero effettivo di pacchetti che ha ricevuto!!! ( per testare protocolli stateless ad esempio UDP, nel caso di TCP senza accedere al raw socket!!!)
 
-        double avg_throughput_MBps = (total_sent / 1.024e6) / (elapsed_ms / 1000); // Ottengo Mega byte per secondo
-        double avg_throughput_Mbps = avg_throughput_MBps * 8;                      // Ottengo Mega bit per secondo
+        double avg_throughput_MBps = ((double)total_sent / (double)1.024e6) / elapsed_s; // / (elapsed_ms / (double)1000); // Ottengo Mega byte per secondo
+        double avg_throughput_Mbps = avg_throughput_MBps * (double)8;                      // Ottengo Mega bit per secondo
 
-        double throughput_pps = packet_num / (elapsed_ms / 1000);
+        double throughput_pps = packet_num / elapsed_s;
 
         int total_expected = block_size;
         int total_lost = total_expected - total_sent;
@@ -228,7 +231,7 @@ void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, 
             printf("%.3f\t", packet_to_send); // numero pacchetti da inviare
             printf("%d\t", packet_num);       // numero pacchetti inviati
             printf("%d\t", 0);                //
-            printf("%d\t", total_sent);       // Mega bytes
+            printf("%.3f\t", ((double)total_sent / (double)1.024e6));       // Mega bytes
             // printf("  Data Lost:         %d bytes\n", total_lost);
             printf("%.3f\t", error_pct);
             printf("%.3f\t", elapsed_ms);
@@ -240,7 +243,7 @@ void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, 
         if (csv_enabled == 1)
             fclose(csv);
 
-        usleep(1000000);
+        //usleep(1000); // TODO: utilizzare opzione per attivare il ritardo
     }
 }
 void run_underlay_bandwidth_server(int port)

@@ -43,6 +43,7 @@ typedef struct {
     char overlay_path[256];
     char csv_path[256];
     bool csv_enabled;
+    bool csv_no_header;
     bool csv_format;
     bool version;
 } program_args_t;

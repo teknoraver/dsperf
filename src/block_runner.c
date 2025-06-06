@@ -49,10 +49,10 @@ static double get_time_microseconds()
     return (tv.tv_sec * 1e6) + tv.tv_usec;
 }
 
-void run_block_client(const char *server_ip, int server_port, size_t block_size, size_t mtu, const char *csv_path, int repetitions, bool formatting_output_csv)
+void run_block_client(const char *server_ip, int server_port, size_t block_size, size_t mtu, const char *csv_path, int repetitions, bool formatting_output_csv, bool csv_no_header)
 {
 
-    if (formatting_output_csv)
+    if (formatting_output_csv && !csv_no_header)
     {
         printf("#/#\t");
         printf("Data Block [MB]\t");
@@ -254,7 +254,7 @@ void run_block_client(const char *server_ip, int server_port, size_t block_size,
         if (csv_enabled == 1)
             fclose(csv);
 
-        usleep(1000000);
+        //usleep(1000000);
     }
 }
 

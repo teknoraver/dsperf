@@ -100,6 +100,7 @@ void start_underlay_server(program_args_t *test)
 }
 
 void start_underlay_client(program_args_t *test)
+
 {
     char ip[64];
     int port;
@@ -133,6 +134,7 @@ void start_underlay_client(program_args_t *test)
     case 0:
     {
         run_underlay_bandwidth_client(test, ip, port);
+
         break;
     }
     case 1:

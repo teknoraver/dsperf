@@ -149,19 +149,21 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
     args->packet_size = 0;
     args->repetitions = 1;
     args->csv_enabled = false;
+    args->csv_no_header = false;
     args->csv_format = false;
     args->pings = 1;
 
     static struct option long_options[] = {
         {"underlay", no_argument, 0, 1},
         {"daas", required_argument, 0, 2},
-        {"blocksize", optional_argument, 0, 3},
+        {"blocksize", required_argument, 0, 3},
         {"packet-size", required_argument, 0, 4},
         {0, 0, 0, 0}
     };
 
     int option_index = 0;
     int c;
+
     while ((c = getopt_long(argc, argv, "S:s:n:m:t:c:f:vy", long_options, &option_index))) {
         if (c == -1) break;
 
@@ -200,6 +202,10 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
                 break;
             case 'y':
                 args->csv_format = true;
+                if(atoi(optarg) == 0)
+                    args->csv_no_header =  true;
+                else
+                    args->csv_no_header =  false;
                 break;
             case 1: // --underlay
                 if (args->layer_mode != -1) {
