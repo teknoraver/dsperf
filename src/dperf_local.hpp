@@ -107,20 +107,24 @@ class daasEvent : public IDaasApiEvent {
         printf("Pkt Err.[%%]\t");
         printf("Transfer Time [ms]\t");
         printf("Throughput [MB/s]\t[Mb/s]\t[pps]\n");
+        printf("Sender first timestamp\t");
+        printf("Local end timestamp\t");
+        printf("Remote first timestamp\t");
+        printf("Remote last timestamp\t");
     }
 
 
         double error_pct = packets > 0 ? ((double)(packets - dperf_info.remote_pkt_counter) / packets) * 100.0 : 0.0;
         uint64_t elapsed = dperf_info.remote_last_timestamp - dperf_info.sender_first_timestamp;
 
-        double avg_throughput_MBps = 0.0;
-        double avg_throughput_Mbps = 0.0;
+        double throughput_MBps = 0.0;
+        double throughput_Mbps = 0.0;
         double throughput_pps = 0.0;
 
         if (elapsed > 0) {
             double elapsed_sec = elapsed / 1000.0;
-            avg_throughput_MBps = (dperf_info.remote_data_counter / 1.024e6) / elapsed_sec;
-            avg_throughput_Mbps = avg_throughput_MBps * 8;
+            throughput_MBps = (dperf_info.remote_data_counter / 1.024e6) / elapsed_sec;
+            throughput_Mbps = throughput_MBps * 8;
             throughput_pps = dperf_info.remote_data_counter / elapsed_sec;
         }
 
@@ -130,11 +134,13 @@ class daasEvent : public IDaasApiEvent {
         printf("  Data Sent:        %d bytes\n", block_size);
         printf("  Pkt Err. %%:      %.3f %%\n", error_pct);
         printf("  Transfer Time:    %llu ms\n", (unsigned long long)elapsed);
-        printf("  Throughput:       %.3f MB/s | %.3f Mbps\n", avg_throughput_MBps, avg_throughput_Mbps);
+        printf("  Throughput:       %.3f MB/s | %.3f Mbps\n", throughput_MBps, throughput_Mbps);
         printf("  Throughput (pps): %.3f pps\n", throughput_pps);
         printf("\n");
         printf("[Node Sender] Transfer Time: %llu ms | Total Bytes: %d | Throughput: %.3f MB/s (%.3f Mbps)\n",
-               (unsigned long long)elapsed, dperf_info.remote_data_counter, avg_throughput_MBps, avg_throughput_Mbps);
+               (unsigned long long)elapsed, dperf_info.remote_data_counter, throughput_MBps, throughput_Mbps);
+        printf("[Local First timestamp]=%.3f | [Local End timestamp]=%.3f | [Remote First timestamp]=%.3f | [Remote Last timestamp]=%.3f\n",
+             (double)dperf_info.sender_first_timestamp, (double)dperf_info.local_end_timestamp, (double)dperf_info.remote_first_timestamp, (double)dperf_info.remote_last_timestamp);
     } else {
         printf("%d\t", 1);  // es: Run number o id (adatta come vuoi)
         printf("%.3f\t", (double)block_size / 1.024e6); // Data Block in MB
@@ -149,8 +155,12 @@ class daasEvent : public IDaasApiEvent {
         printf("%.3f\t", (double)dperf_info.remote_data_counter / 1.024e6); // Data sent MB
         printf("%.3f\t", error_pct);
         printf("%llu\t", (unsigned long long)elapsed);
-        printf("%.3f\t%.3f\t%.3f\n", avg_throughput_MBps, avg_throughput_Mbps, throughput_pps);
-    }
+        printf("%.3f\t%.3f\t%.3f\n", throughput_MBps, throughput_Mbps, throughput_pps);
+        printf("%.3f\t", (double)dperf_info.sender_first_timestamp);
+        printf("%.3f\t", (double)dperf_info.local_end_timestamp);
+        printf("%.3f\t", (double)dperf_info.remote_first_timestamp);
+        printf("%.3f\t", (double)dperf_info.remote_last_timestamp);
+    } 
     }
 
     void setNode(DaasAPI* node) {
