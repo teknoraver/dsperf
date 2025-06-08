@@ -3,7 +3,7 @@
 # Copyright 2019,2025 (@) Sebyone Srl
 # Author: Sebastiano Meduri s.meduri@sebyone.it 
 #
-# Scope: speed up network testing using dperf (https://github.com/sebyone/dperf)
+# Scope: speed up network testing using dperf (https://github.com/sebyone/dsperf)
 #
 # This Source Code Form is subject to the terms of the Mozilla Public License,v.2.0.
 # You can obtain a copy of the MPL at https://mozilla.org/MPL/2.0/.
@@ -46,10 +46,10 @@ FILE_NAME="$1_$3_${DATA_FILE}_dperf.csv"
 REGEX1='s/^\([^,]*\),[^,]*,[^,]*,[^,]*,[^,]*,/\1,/'
 REGEX2=#'s/\./,/g'
 
-# Running a test with dperf
+# Running a test with dsperf
 for i in $(seq 1 $SAMPLES); do
   if [ ! -f "$OUTPUT_FOLDER/$FILE_NAME" ]; then
-    #echo "Running a test with dperf"
+    #echo "Running a test with dsperf"
     echo -e "$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME" > "$OUTPUT_FOLDER/$FILE_NAME"
     dperf --underlay -s "$IP_DEST":5002 --blocksize "$BYTES_TOTALI" -y 1 -n 1 | sed 's/\./,/g' >> "$OUTPUT_FOLDER/$FILE_NAME"
   else

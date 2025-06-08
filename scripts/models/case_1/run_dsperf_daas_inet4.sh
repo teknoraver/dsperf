@@ -24,8 +24,6 @@ FILE_NAME="$1_$3_$DATA_FILE_dperf.csv"
 REGEX2=#'s/\./,/g'
 REGEX1='s/^\([^,]*\),[^,]*,[^,]*,[^,]*,[^,]*,/\1,/'
 
-
-
-./dperf -s=$DIN_DEST --daas=nodeb.ini --blocksize=10240 -n $SAMPLES
+./dperf -s=$DIN_DEST --daas=daas_inet4.ini --blocksize=10240 -n $SAMPLES
 
 

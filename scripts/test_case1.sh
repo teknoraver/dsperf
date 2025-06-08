@@ -3,7 +3,7 @@
 # Copyright 2019,2025 (@) Sebyone Srl
 # Author: Sebastiano Meduri s.meduri@sebyone.it 
 #
-# Scope: speed up network testing using dperf (https://github.com/sebyone/dperf)
+# Scope: network testing using dperf (https://github.com/sebyone/dperf)
 #
 # This Source Code Form is subject to the terms of the Mozilla Public License,v.2.0.
 # You can obtain a copy of the MPL at https://mozilla.org/MPL/2.0/.
@@ -18,37 +18,45 @@
 # This disclaimer of warranty constitutes an essential part of this License.  
 # No use of any Covered Software is authorized under this License except under this disclaimer.
 
-# Level 2 script
 
-
-# Eseguo test sulla underlay WiFi
-
+# Case_1:
+# defines an underlay/overlay test using Ipv4 and DaaS.INET4
+# daas node is configurable by "daas_inet4.ini" located in the model folder
+# The model to run is defined with the scripts (run_*) located in folder TEST_MODEL_FOLDER
 
 if [ $# -le 1 ]; then
   echo "Use: $0 <loopback_addr> <samples> <output_folder_name>"
   exit 1
 fi
 
-SCRIPT_FOLDER="case_1"
+# Level 0 script
+# //
 LOOPBACK_ADDRESS=$1
 SAMPLES=$2
-OUTPUT_FOLDER=$3
-
+OUTPUT_FOLDER="results\$3"
 if [ ! -d "$OUTPUT_FOLDER" ]; then
   mkdir $OUTPUT_FOLDER
+else
+# deletes all files in folder...
 fi
 
+# Model settings
+# //
+TEST_MODEL_FOLDER="models\case_1"  
 
-# Settare ambiente di sistema
+# Environment settings
+# //
 
+# runs model for each cluster we need
+#
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 100k "../$OUTPUT_FOLDER"
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 5M "../$OUTPUT_FOLDER"
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 100M "../$OUTPUT_FOLDER"
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 300M "../$OUTPUT_FOLDER"
 
-# execute all run_test* units in folder <tests_dir>
-# Test underlay WiFi
-./run_test.sh  $SCRIPT_FOLDER $LOOPBACK_ADDRESS $SAMPLES 100k "../$OUTPUT_FOLDER"
-./run_test.sh  $SCRIPT_FOLDER $LOOPBACK_ADDRESS $SAMPLES 5M "../$OUTPUT_FOLDER"
-./run_test.sh  $SCRIPT_FOLDER $LOOPBACK_ADDRESS $SAMPLES 100M "../$OUTPUT_FOLDER"
-./run_test.sh  $SCRIPT_FOLDER $LOOPBACK_ADDRESS $SAMPLES 300M "../$OUTPUT_FOLDER"
+# Environment reset
+# //
 
-
-# Merge all files
+# Merge all csv files located in OUTPUT_FOLDER
+# //
 #merge_files.sh $OUTPUT_FOLDER
