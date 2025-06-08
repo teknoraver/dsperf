@@ -3,7 +3,7 @@
 # Copyright 2019,2025 (@) Sebyone Srl
 # Author: Sebastiano Meduri s.meduri@sebyone.it 
 #
-# Scope: speed up network testing using dperf (https://github.com/sebyone/dperf)
+# Scope: network testing using dperf (https://github.com/sebyone/dperf)
 #
 # This Source Code Form is subject to the terms of the Mozilla Public License,v.2.0.
 # You can obtain a copy of the MPL at https://mozilla.org/MPL/2.0/.
@@ -19,31 +19,51 @@
 # No use of any Covered Software is authorized under this License except under this disclaimer.
 
 
-# Level 1 script
+# tool-eth:
+# defines an underlay test using Ipv4 to validate dsperf tool.
+# The model to run is defined in folder: "models\validation_ipv4".
+# The execution environment has "WiFi" activated and the other interfaces are disabled. 
 
 if [ $# -le 1 ]; then
   echo "Use: $0 <loopback_addr> <samples> <output_folder_name>"
   exit 1
 fi
 
-SCRIPT_FOLDER="ipv4"
+# Level 0 script
+# //
 LOOPBACK_ADDRESS=$1
 SAMPLES=$2
-OUTPUT_FOLDER=$3
-
+OUTPUT_FOLDER="results\$3"
 if [ ! -d "$OUTPUT_FOLDER" ]; then
   mkdir $OUTPUT_FOLDER
+else
+# deletes all files in folder...
 fi
 
-# execute all run_test* units in folder <tests_dir>
-./run_test.sh  $SCRIPT_FOLDER $LOOPBACK_ADDRESS $SAMPLES 10k "../$OUTPUT_FOLDER"
-./run_test.sh  $SCRIPT_FOLDER $LOOPBACK_ADDRESS $SAMPLES 100k "../$OUTPUT_FOLDER"
-./run_test.sh  $SCRIPT_FOLDER $LOOPBACK_ADDRESS $SAMPLES 500k "../$OUTPUT_FOLDER"
-./run_test.sh  $SCRIPT_FOLDER $LOOPBACK_ADDRESS $SAMPLES 1M "../$OUTPUT_FOLDER"
-./run_test.sh  $SCRIPT_FOLDER $LOOPBACK_ADDRESS $SAMPLES 10M "../$OUTPUT_FOLDER"
+# Model settings
+# //
+TEST_MODEL_FOLDER="models\validation_ipv4"  
 
-# dopooooo ho in OUTPUT_FOLDER tutti i file che devo mergiare
+# Environment settings
+# //
+# // enable WiFi
+# // disable eth0
 
-# Merge all files
-#merge_files.sh $OUTPUT_FOLDER
 
+# runs model for each cluster we need
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 10k "../$OUTPUT_FOLDER"
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 100k "../$OUTPUT_FOLDER"
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 500k "../$OUTPUT_FOLDER"
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 1M "../$OUTPUT_FOLDER"
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 5M "../$OUTPUT_FOLDER"
+./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 10M "../$OUTPUT_FOLDER"
+
+# Environment reset
+# //
+# // disable WiFi
+# // enable eth0
+
+
+# Merge all csv files located in OUTPUT_FOLDER
+# //
+# // merge_files $OUTPUT_FOLDER
