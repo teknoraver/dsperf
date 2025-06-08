@@ -164,7 +164,7 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
     int option_index = 0;
     int c;
 
-    while ((c = getopt_long(argc, argv, "S:s:n:m:t:c:f:vy", long_options, &option_index))) {
+    while ((c = getopt_long(argc, argv, "S:s:n:m:t:c:f:vy:", long_options, &option_index))) {
         if (c == -1) break;
 
         switch (c) {
