@@ -24,6 +24,7 @@ void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, 
     const char *csv_path = test->csv_path;
     int repetitions = test->repetitions;
     bool formatting_output_csv = test->csv_format;
+    bool csv_no_header = test->csv_no_header;
     bool mtu_defined = test->mtu_defined;
     int mtu_size = test->mtu_size;
     int time = test->time;
@@ -31,8 +32,7 @@ void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, 
 
     const uint64_t target_bitrate_bps = 10 * 1000 * 1000; // 10 Mbps
 
-    if (formatting_output_csv)
-
+    if (formatting_output_csv && csv_no_header)
     {
         printf("#/#\t");
         printf("Data Block [MB]\t");
@@ -48,6 +48,7 @@ void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, 
         printf("Transfer Time [ms]\t");
         printf("Throughput [MB/s]\t[Mb/s]\t[pps]\n");
     }
+
 
     for (int i = 0; i < repetitions; i++)
     {

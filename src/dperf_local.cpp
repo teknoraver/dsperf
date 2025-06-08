@@ -251,12 +251,19 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
                 break;
             }
             case 'y':
-                {
-                    args->csv_format = true;
-                    int val = atoi(optarg);
-                    args->csv_no_header = (val == 0);
+            {
+                args->csv_format = true;
+                args->csv_no_header = false;
+
+                int val = atoi(optarg);
+                if (val != 0 && val != 1) {
+                    fprintf(stderr, "Errore: il valore per --csv-no-header (-y) deve essere 0 o 1.\n");
+                    exit(EXIT_FAILURE);
                 }
-                break;
+
+                args->csv_no_header = (val == 1);
+            }
+            break;
 
             case 'v':
                 args->version = true;
