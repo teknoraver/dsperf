@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(dperf VERSION 0.0.32 LANGUAGES C CXX)
+project(dperf VERSION 0.0.35 LANGUAGES C CXX)
 
 # Abilitazione di compilazione condizionata NODAAS
 option(NODAAS "Exclude libdaas library" OFF)
@@ -28,7 +28,6 @@ set(SOURCES
     ${LOOPBACK_DIR}/main.cpp
     ${SYSTEM_INFO_DIR}/system_info.c
     ${LOOPBACK_DIR}/test_models/model_bandwidth.cpp
-    ${LOOPBACK_DIR}/rtt_runner.c
     ${LOOPBACK_DIR}/timer.c
     ${LOOPBACK_DIR}/dperf_local.cpp
 )
@@ -44,7 +43,6 @@ endif()
 set(HEADERS
     ${LOOPBACK_DIR}/test_models/model_bandwidth.h
     ${LOOPBACK_DIR}/timer.h
-    ${LOOPBACK_DIR}/rtt_runner.h
     ${LOOPBACK_DIR}/version.h
     ${LOOPBACK_DIR}/dperf_local.hpp
     # NOT IMPLEMENTED FILES

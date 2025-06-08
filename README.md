@@ -64,9 +64,10 @@ Overlay brings incontrovertible benefits in terms of resilience, versatility and
 | `-s <host:port>`         | Connect to remote host (client mode)                                   |
 | `--protocol`             | !! Select the desired protocol for the test (UDP, TCP/IP, ecc.)  default TCP/IP                 |
 | `--driver`               | !! Specifics the driver to use  |
-| `--overlay`              | !! Runs the test in overlay mode (daas)     |
+| `--daas`              | !! Runs the test in overlay mode (daas)     |
 | `--underlay`             | Runs the test in underlay mode             |
-| `--blocksize <bytes>`    | Total data to transfer (in bytes), only client have to specify the size |
+| `--blocksize <bytes>`    | Client sets total data to transfer (in bytes) |
+| `-c <packet_num>`        | Set how many packets send (daas mode) |
 | `-n <repetitions>`       | Specify how many times the test have to run               |
 | `-f <csv_file>`          | Export the data in a CSV file                               |
 | `-y`                     | Formats output console in csv                                                                     |
@@ -101,13 +102,26 @@ CSV File contains those informations:
 
 ### Client (Node A)
 ```bash
-./dperf -s <host:port> --blocksize <bytes>|--packet-size <bytes> [-n <repetitions>|-c<ping-count>]  --underlay|--daas [-f <file.csv>] 
+./dperf -s <host:port> --blocksize <bytes>|--packet-size <bytes> [-n <repetitions>|-c<ping-count>]  --underlay|--daas <daas.ini> [-f <file.csv>] 
 
 ```
 ### Server (Node B)
 ```bash
-./dperf -S <port> --blocksize|--packetsize --underlay|--daas
+./dperf -S <port> --underlay|--daas <daas.ini>
+
 ```
+
+## DaaS Ini File Example
+
+[LOCAL]
+DIN=101                         //Local Din
+LINK_0=2                        //LINK_TYPE (check DaaS API for info)
+URI_0=127.0.0.1:3001            //URI
+
+[MAP]
+REMOTE_DIN_0=102                //REMOTE NODE TO MAP
+REMOTE_LINK_0=2                 //LINK_TYPE
+REMOTE_URI_0=127.0.0.1:3002     //REMOTE URI
 
 ## Compile
 
@@ -128,7 +142,7 @@ Then you can run the executable `dperf`!
 Transfer of a data block of 10 MB
 
 ### start server
-./dperf -S --underlay --blocksize
+./dperf -S 5001 --underlay
 
 ### start client
 ./dperf --underlay -s 127.0.0.1:5001 --blocksize 1024000000 -y -n 10 > data_100M.csv
@@ -141,4 +155,8 @@ or:
 
 ### start client (overlay mode)
 
-./dperf -s 127.0.0.1:2001 --daas node_setup.ini --blocksize 1024000000
+./dperf -s 102 --daas node_setup.ini --blocksize 1024000000
+
+### start server (overlay mode)
+
+./dperf -S 101 --daas node_setup2.ini

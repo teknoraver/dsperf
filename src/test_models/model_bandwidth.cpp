@@ -356,11 +356,11 @@ void run_underlay_bandwidth_server(int port)
 
 #ifdef WITH_DAAS
 //Return a node based on the setup.
-DaasAPI* setupNode(daas_setup_t *daas_setup){
+DaasAPI* setupNode(daas_setup_t *daas_setup, bool csv_format){
 
     //Instantiate a node and set the callback event
     DaasAPI* node = nullptr;
-    auto* dummyHandler = new daasEvent(nullptr);  
+    auto* dummyHandler = new daasEvent(nullptr, csv_format);  
     node = new DaasAPI(dummyHandler, "Dperf");
     static_cast<daasEvent*>(dummyHandler)->setNode(node);
 
@@ -403,23 +403,27 @@ DaasAPI* setupNode(daas_setup_t *daas_setup){
 void run_overlay_bandwidth_client(daas_setup_t *daas_setup, program_args_t *test){
 
     int block_size = test->block_size;
-    int packet_size = test->packet_size;
     int repetitions = test->repetitions;
+    bool csv_format = test->csv_format;
+    int pack_num = test->pack_num;
     
-    DaasAPI* node = setupNode(daas_setup);
+    DaasAPI* node = setupNode(daas_setup, csv_format);
     if(node == nullptr) return;
 
     if(node->listNodes().size() == 0) return;
 
     //first mapped din for semplicity
+    /*
     din_t remote_din = node->listNodes()[0];
     printf("Remote Din: %i\n", remote_din);
+    */
+    din_t remote_din = test->remote_din;
 
     if(node-> locate(remote_din)!=ERROR_NONE) return;
     for(int i=0;i<repetitions;i++){
         printf("Sending Test: %i\n", i+1);
-        node -> frisbee_dperf(remote_din, 1, block_size, 0);
-        usleep(3000000);
+        node -> frisbee_dperf(remote_din, pack_num, block_size, 0);
+        usleep(1000000);
     }
 
     return;
@@ -427,7 +431,7 @@ void run_overlay_bandwidth_client(daas_setup_t *daas_setup, program_args_t *test
 }
 
 void run_overlay_bandwidth_server(daas_setup_t *daas_setup){
-     DaasAPI* node = setupNode(daas_setup);
+     DaasAPI* node = setupNode(daas_setup, false);
     if(node == nullptr) return;
 
     if(node->listNodes().size() == 0) return;

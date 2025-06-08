@@ -84,20 +84,10 @@ double now_sec()
 
 void start_underlay_server(program_args_t *test)
 {
-    switch (test->run_mode)
-    {
-    case 0:
-    {
         run_underlay_bandwidth_server(test->port);
-        break;
-    }
-    case 1:
-    {
-        run_rtt_server(test->port, test->packet_size);
-        break;
-    }
-    }
+        
 }
+
 
 void start_underlay_client(program_args_t *test)
 
@@ -126,23 +116,11 @@ void start_underlay_client(program_args_t *test)
     if (!test->csv_format)
     {
         printf("dperf started as client to %s:%d with %s size %d\n",
-               ip, port, (test->block_size > 0) ? "block" : "packet",
-               (test->block_size > 0) ? test->block_size : test->packet_size);
+               ip, port, "block", test->block_size);
     }
-    switch (test->run_mode)
-    {
-    case 0:
-    {
+
         run_underlay_bandwidth_client(test, ip, port);
 
-        break;
-    }
-    case 1:
-    {
-        run_rtt_client(ip, port, test->packet_size, test->pings);
-        break;
-    }
-    }
 }
 #ifdef WITH_DAAS
 void start_daas_server(daas_setup_t *setup)
@@ -204,12 +182,6 @@ int main(int argc, char *argv[])
     {
         fprintf(f, "Data Block Size: %d\n", args.block_size);
     }
-    else
-    {
-        fprintf(f, "Packet Size: %d\n", args.packet_size);
-        fprintf(f, "Packet Count: %d\n", args.pings);
-    }
-
     fprintf(f, "Layer: %s\n", args.layer_mode == 0 ? "Underlay" : "DaaS Overlay");
     fprintf(f, "Layer Version: %s\n", args.layer_mode == 0 ? "IPv4 plain sockets" : "DaaS Layer");
 

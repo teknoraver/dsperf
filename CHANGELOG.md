@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [0.0.35] - 2025-06-08
+### Changed
+- More user friendly way to start server in both --underlay and --daas mode
+- csv_format now available for --daas also
+- -S and -s in --daas mode now require the remote din as parameter and not the ip/port
+
 # [0.0.34] - 2025-06-06
 ### Changed
 - Overlay mode now works correctly.

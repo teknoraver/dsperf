@@ -140,33 +140,31 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
     memset(args, 0, sizeof(*args));
     args->is_sender = -1;
     args->layer_mode = -1;
-    args->run_mode = -1;
     args->block_size = 0;
     args->mtu_defined = false;
     args->mtu_size = 1500;
-    args->time = 0;
-    args->time_defined = false;
-    args->packet_size = 0;
     args->repetitions = 1;
+    args->pack_num = 1;
     args->csv_enabled = false;
     args->csv_no_header = false;
-    args->csv_format = false;
-    args->pings = 1;
+    args->version = false;
+    args->port = 0;
+    args->remote_din = -1;
+    args->remote_ip[0] = '\0';
+    args->overlay_path[0] = '\0';
+    args->csv_path[0] = '\0';
 
     static struct option long_options[] = {
         {"underlay", no_argument, 0, 1},
         {"daas", required_argument, 0, 2},
         {"blocksize", required_argument, 0, 3},
-        {"packet-size", required_argument, 0, 4},
         {0, 0, 0, 0}
     };
 
     int option_index = 0;
     int c;
 
-    while ((c = getopt_long(argc, argv, "S:s:n:m:t:c:f:vy:", long_options, &option_index))) {
-        if (c == -1) break;
-
+    while ((c = getopt_long(argc, argv, "S:s:n:c:m:f:t:y:v", long_options, &option_index)) != -1) {
         switch (c) {
             case 'S':
                 if (args->is_sender != -1) {
@@ -174,39 +172,96 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
                     exit(EXIT_FAILURE);
                 }
                 args->is_sender = 0;
-                args->port = atoi(optarg);
+                if (args->layer_mode == 0) { // underlay: PORT
+                    args->port = atoi(optarg);
+                    if (args->port <= 0) {
+                        fprintf(stderr, "Error: Invalid port number for server\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } else if (args->layer_mode == 1) {
+                    args->remote_din = atoi(optarg);
+                    if (args->remote_din < 0) {
+                        fprintf(stderr, "Error: Invalid DIN for server\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } else {
+                    // Layer mode non ancora definito: salvare comunque arg e fare check dopo
+                    // Conserviamo il valore provvisorio in remote_ip o remote_din, controlliamo in validate
+                    // Per semplicità: useremo remote_ip come buffer temporaneo per il valore
+                    strncpy(args->remote_ip, optarg, sizeof(args->remote_ip) - 1);
+                }
                 break;
+
             case 's':
                 if (args->is_sender != -1) {
                     fprintf(stderr, "Error: Cannot specify both -S and -s\n");
                     exit(EXIT_FAILURE);
                 }
                 args->is_sender = 1;
-                strncpy(args->remote_ip, optarg, sizeof(args->remote_ip) - 1);
+                if (args->layer_mode == 0) { // underlay: IP:PORT
+                    strncpy(args->remote_ip, optarg, sizeof(args->remote_ip) - 1);
+                } else if (args->layer_mode == 1) {
+                    args->remote_din = atoi(optarg);
+                    if (args->remote_din < 0) {
+                        fprintf(stderr, "Error: Invalid DIN for client\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } else {
+                    // Layer mode non ancora definito: salvare in remote_ip e validare dopo
+                    strncpy(args->remote_ip, optarg, sizeof(args->remote_ip) - 1);
+                }
                 break;
+
             case 'n':
                 args->repetitions = atoi(optarg);
+                if (args->repetitions < 1) {
+                    fprintf(stderr, "Error: repetitions must be >= 1\n");
+                    exit(EXIT_FAILURE);
+                }
                 break;
+            case 'c':
+                args->pack_num = atoi(optarg);
+                if(args->pack_num < 1) {
+                    fprintf(stderr, "Error: packet number must be >= 1\n");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+
             case 'm':
                 args->mtu_defined = true;
                 args->mtu_size = atoi(optarg);
-            case 'c':
-                args->pings = atoi(optarg);
+                if (args->mtu_size < 1) {
+                    fprintf(stderr, "Error: MTU must be >= 1\n");
+                    exit(EXIT_FAILURE);
+                }
                 break;
+
             case 'f':
-                args->csv_enabled = 1;
+            {
+                args->csv_enabled = true;
                 strncpy(args->csv_path, optarg, sizeof(args->csv_path) - 1);
                 break;
-            case 'v':
-                args->version = 1;
+            }
+            
+            case 't':
+            {
+                args->time_defined = true;
+                int val = atoi(optarg);
+                args->time = val;
                 break;
+            }
             case 'y':
-                args->csv_format = true;
-                if(atoi(optarg) == 0)
-                    args->csv_no_header =  true;
-                else
-                    args->csv_no_header =  false;
+                {
+                    args->csv_format = true;
+                    int val = atoi(optarg);
+                    args->csv_no_header = (val == 0);
+                }
                 break;
+
+            case 'v':
+                args->version = true;
+                break;
+
             case 1: // --underlay
                 if (args->layer_mode != -1) {
                     fprintf(stderr, "Error: Cannot specify both --underlay and --daas\n");
@@ -214,6 +269,7 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
                 }
                 args->layer_mode = 0;
                 break;
+
             case 2: // --daas
                 if (args->layer_mode != -1) {
                     fprintf(stderr, "Error: Cannot specify both --underlay and --daas\n");
@@ -222,78 +278,132 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
                 args->layer_mode = 1;
                 strncpy(args->overlay_path, optarg, sizeof(args->overlay_path) - 1);
                 break;
+
             case 3: // --blocksize
-                if (args->run_mode != -1) {
-                    fprintf(stderr, "Error: Cannot specify both --blocksize and --packet-size\n");
+                args->block_size = atoi(optarg);
+                if (args->block_size < 1) {
+                    fprintf(stderr, "Error: blocksize must be >= 1\n");
                     exit(EXIT_FAILURE);
                 }
-                args->run_mode = 0;
-                if (optarg) {
-                    args->block_size = atoi(optarg);
-                } else {
-                    args->block_size = 4096; // default value
-                }
                 break;
-            case 4: // --packet-size
-                if (args->run_mode != -1) {
-                    fprintf(stderr, "Error: Cannot specify both --blocksize and --packet-size\n");
-                    exit(EXIT_FAILURE);
-                }
-                args->run_mode = 1;
-                args->packet_size = atoi(optarg);
-                break;
+
             default:
-                print_usage(argv[0]);
+                fprintf(stderr, "Unknown option\n");
                 exit(EXIT_FAILURE);
         }
     }
 }
 
 int validate_args(program_args_t *args, const char *prog_name) {
-    // Check required modes
+    // Controlli base
     if (args->is_sender == -1) {
         fprintf(stderr, "Error: Must specify either -S (server) or -s (client)\n");
         return EXIT_FAILURE;
     }
-
-
     if (args->layer_mode == -1) {
         fprintf(stderr, "Error: Must specify either --underlay or --daas\n");
         return EXIT_FAILURE;
     }
 
-    if (args->run_mode == -1) {
-        fprintf(stderr, "Error: Must specify either --blocksize or --packet-size\n");
-        return EXIT_FAILURE;
-    }
-
-    if(args->mtu_defined && args->mtu_size < 1){
-        fprintf(stderr, "MTU Should not be 0 or less\n");
-        return EXIT_FAILURE;
-    }
-
-    if(args->time_defined && args->time < 1){
-        fprintf(stderr, "Time Should not be 0 or less\n");
-        return EXIT_FAILURE;
-    }
-
-
-    // Client-specific validations
-    if (args->is_sender == 1) {
-        if (args->run_mode == 1 && args->packet_size <= 0) {
-            fprintf(stderr, "Error: Client must specify positive packet size with --packet-size\n");
-            return EXIT_FAILURE;
-        }
-
-        if(args->run_mode == 0 && args->block_size <= 0){
-            fprintf(stderr, "Error: Client must specify positive block size with --blocksize\n");
-            return EXIT_FAILURE;
-        }
-    }
-
-    // Server-specific defaults
+    // Per server: accetta solo parametri base
     if (args->is_sender == 0) {
-        args->block_size = 0;
+        // Se layer_mode non è definito, proviamo a dedurlo dall'argomento di -S
+        if (args->layer_mode == 0) {
+            // -S deve essere porta
+            if (args->port == 0) {
+                // Se non settata ancora, proviamo a convertire da remote_ip (tmp)
+                if (args->remote_ip[0] != '\0') {
+                    args->port = atoi(args->remote_ip);
+                    if (args->port <= 0) {
+                        fprintf(stderr, "Error: Invalid port number for server\n");
+                        return EXIT_FAILURE;
+                    }
+                } else {
+                    fprintf(stderr, "Error: Server port not specified\n");
+                    return EXIT_FAILURE;
+                }
+            }
+        } else if (args->layer_mode == 1) {
+            // -S deve essere remote_din
+            if (args->remote_din < 0) {
+                if (args->remote_ip[0] != '\0') {
+                    args->remote_din = atoi(args->remote_ip);
+                    if (args->remote_din < 0) {
+                        fprintf(stderr, "Error: Invalid DIN for server\n");
+                        return EXIT_FAILURE;
+                    }
+                } else {
+                    fprintf(stderr, "Error: Server DIN not specified\n");
+                    return EXIT_FAILURE;
+                }
+            }
+        }
+
+        // Verifica che non siano presenti opzioni non ammesse per server
+        if (args->block_size != 0) {
+            fprintf(stderr, "Error: Server must not specify --blocksize\n");
+            return EXIT_FAILURE;
+        }
+        if (args->repetitions != 1) {
+            fprintf(stderr, "Error: Server must not specify -n (repetitions)\n");
+            return EXIT_FAILURE;
+        }
+        if (args->csv_enabled) {
+            fprintf(stderr, "Error: Server must not specify -f (csv output)\n");
+            return EXIT_FAILURE;
+        }
+        if (args->csv_no_header) {
+            fprintf(stderr, "Error: Server must not specify -y (csv header control)\n");
+            return EXIT_FAILURE;
+        }
+        if (args->mtu_defined) {
+            fprintf(stderr, "Error: Server must not specify -m (mtu)\n");
+            return EXIT_FAILURE;
+        }
+    }
+
+    // Per client: deve avere tutti i parametri corretti
+    if (args->is_sender == 1) {
+        // Verifica layer_mode e argomenti collegati
+        if (args->layer_mode == 0) {
+            // underlay: remote_ip deve essere IP:PORT
+            if (args->remote_ip[0] == '\0') {
+                fprintf(stderr, "Error: Client must specify IP:PORT for underlay\n");
+                return EXIT_FAILURE;
+            }
+        } else if (args->layer_mode == 1) {
+            // daas: remote_din >= 0
+            if (args->remote_din < 0) {
+                if (args->remote_ip[0] != '\0') {
+                    args->remote_din = atoi(args->remote_ip);
+                    if (args->remote_din < 0) {
+                        fprintf(stderr, "Error: Invalid DIN for client\n");
+                        return EXIT_FAILURE;
+                    }
+                } else {
+                    fprintf(stderr, "Error: Client DIN not specified\n");
+                    return EXIT_FAILURE;
+                }
+            }
+        }
+
+        if (args->block_size < 1) {
+            fprintf(stderr, "Error: Client must specify --blocksize >= 1\n");
+            return EXIT_FAILURE;
+        }
+        if (args->repetitions < 1) {
+            fprintf(stderr, "Error: repetitions must be >= 1\n");
+            return EXIT_FAILURE;
+        }
+        if (args->mtu_defined && args->mtu_size < 1) {
+            fprintf(stderr, "Error: MTU must be >= 1\n");
+            return EXIT_FAILURE;
+        }
+        // csv_path se csv_enabled deve essere valorizzato
+        if (args->csv_enabled && args->csv_path[0] == '\0') {
+            fprintf(stderr, "Error: CSV output enabled but no file specified\n");
+            return EXIT_FAILURE;
+        }
     }
 
     return EXIT_SUCCESS;

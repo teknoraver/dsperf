@@ -28,23 +28,22 @@
 
 typedef struct {
     int is_sender;            // -1 = unset, 0 = server, 1 = client
-    int layer_mode;           // -1 = unset, 0 = underlay, 1 = overlay
-    int run_mode;             // -1 = unset, 0 = blocksize, 1 = packet-size
-    int block_size;
+    int layer_mode;           // -1 = unset, 0 = underlay, 1 = daas
+    int block_size;           // dimensione del blocco (solo client)
     int mtu_size;
     bool mtu_defined;
-    int time;
-    bool time_defined;
-    int packet_size;
-    int repetitions;
-    int pings;
-    int port;
-    char remote_ip[256];
-    char overlay_path[256];
+    int repetitions;          // solo client, default 1
+    int pack_num;
+    int port;                 // server con underlay: porta di ascolto
+    char remote_ip[256];      // client con underlay: IP:PORT stringa
+    int remote_din;           // client/server con daas: remote DIN (intero)
+    char overlay_path[256];   // percorso file ini per daas
     char csv_path[256];
     bool csv_enabled;
-    bool csv_no_header;
     bool csv_format;
+    bool csv_no_header;
+    int time;
+    bool time_defined;
     bool version;
 } program_args_t;
 
@@ -77,7 +76,7 @@ class daasEvent : public IDaasApiEvent {
 
     public:
 
-    daasEvent(DaasAPI* node) : node_(node) {}
+    daasEvent(DaasAPI* node, bool csv_format) : node_(node), csv_format_(csv_format) {}
     void dinAcceptedEvent(din_t din) override {}
     void ddoReceivedEvent(int payload_size, typeset_t typeset, din_t din) override {
         DDO *pk;
@@ -93,6 +92,7 @@ class daasEvent : public IDaasApiEvent {
     void frisbeeDperfCompleted(din_t din, uint32_t packets, uint32_t block_size){
         auto dperf_info = node_->get_frisbee_dperf_result();
 
+
         double error_pct = packets > 0 ? ((double)(packets - dperf_info.remote_pkt_counter) / packets) * 100.0 : 0.0;
         uint64_t elapsed = dperf_info.remote_last_timestamp - dperf_info.sender_first_timestamp;
 
@@ -107,17 +107,33 @@ class daasEvent : public IDaasApiEvent {
             throughput_pps = dperf_info.remote_data_counter / elapsed_sec;
         }
 
+        if (!csv_format_) {
         printf("  Pkt sent: %d\n", packets);
         printf("  Pkt loss: %d\n", packets - dperf_info.remote_pkt_counter);
         printf("  Data Sent:        %d bytes\n", block_size);
         printf("  Pkt Err. %%:      %.3f %%\n", error_pct);
-        printf("  Transfer Time:    %lld ms\n", elapsed);
+        printf("  Transfer Time:    %llu ms\n", (unsigned long long)elapsed);
         printf("  Throughput:       %.3f MB/s | %.3f Mbps\n", avg_throughput_MBps, avg_throughput_Mbps);
         printf("  Throughput (pps): %.3f pps\n", throughput_pps);
         printf("\n");
-        printf("[Node Sender] Transfer Time: %lld ms | Total Bytes: %d | Throughput: %.3f MB/s (%.3f Mbps)\n",
-                                elapsed, dperf_info.remote_data_counter,avg_throughput_MBps,avg_throughput_Mbps);
-
+        printf("[Node Sender] Transfer Time: %llu ms | Total Bytes: %d | Throughput: %.3f MB/s (%.3f Mbps)\n",
+               (unsigned long long)elapsed, dperf_info.remote_data_counter, avg_throughput_MBps, avg_throughput_Mbps);
+    } else {
+        printf("%d\t", 1);  // es: Run number o id (adatta come vuoi)
+        printf("%.3f\t", (double)block_size / 1.024e6); // Data Block in MB
+        printf("IPv4\t");  // Protocollo fisso o variabile se serve
+        printf("%d\t", dperf_info.remote_pkt_counter > 0 ? (block_size / dperf_info.remote_pkt_counter) : 0);  // Packet Length approx
+        printf("40\t"); // Header bytes fisso o calcolato
+        double efficiency = ((double)block_size / (block_size + 40 * dperf_info.remote_pkt_counter)) * 100.0;
+        printf("%.3f\t", efficiency);
+        printf("%.3f\t", (double)block_size / (block_size / (dperf_info.remote_pkt_counter > 0 ? dperf_info.remote_pkt_counter : 1))); // Pkts to send (approx)
+        printf("%d\t", dperf_info.remote_pkt_counter);  // Pkt sent
+        printf("%d\t", packets - dperf_info.remote_pkt_counter); // Pkt loss
+        printf("%.3f\t", (double)dperf_info.remote_data_counter / 1.024e6); // Data sent MB
+        printf("%.3f\t", error_pct);
+        printf("%llu\t", (unsigned long long)elapsed);
+        printf("%.3f\t%.3f\t%.3f\n", avg_throughput_MBps, avg_throughput_Mbps, throughput_pps);
+    }
     }
 
     void setNode(DaasAPI* node) {
@@ -125,6 +141,7 @@ class daasEvent : public IDaasApiEvent {
     }
     private:
     DaasAPI* node_;
+    bool csv_format_;
 
 };
 #endif
