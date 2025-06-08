@@ -76,7 +76,7 @@ class daasEvent : public IDaasApiEvent {
 
     public:
 
-    daasEvent(DaasAPI* node, bool csv_format) : node_(node), csv_format_(csv_format) {}
+    daasEvent(DaasAPI* node, bool csv_format, bool csv_no_header) : node_(node), csv_format_(csv_format), csv_no_header_(csv_no_header) {}
     void dinAcceptedEvent(din_t din) override {}
     void ddoReceivedEvent(int payload_size, typeset_t typeset, din_t din) override {
         DDO *pk;
@@ -91,6 +91,23 @@ class daasEvent : public IDaasApiEvent {
     void atsSyncCompleted(din_t din) {} 
     void frisbeeDperfCompleted(din_t din, uint32_t packets, uint32_t block_size){
         auto dperf_info = node_->get_frisbee_dperf_result();
+
+        if (csv_format_ && csv_no_header_)
+    {
+        printf("#/#\t");
+        printf("Data Block [MB]\t");
+        printf("Protocol\t");
+        printf("Pkt Length [bytes]\t");
+        printf("Header [bytes]\t");
+        printf("Efficiency[%%]\t");
+        printf("Pkts to send\t");  // numero pacchetti da inviare
+        printf("Pkt sent\t");      // numero pacchetti inviati
+        printf("Pkt loss\t");      //
+        printf("Data Sent[MB]\t"); // Mega bytes
+        printf("Pkt Err.[%%]\t");
+        printf("Transfer Time [ms]\t");
+        printf("Throughput [MB/s]\t[Mb/s]\t[pps]\n");
+    }
 
 
         double error_pct = packets > 0 ? ((double)(packets - dperf_info.remote_pkt_counter) / packets) * 100.0 : 0.0;
@@ -142,6 +159,7 @@ class daasEvent : public IDaasApiEvent {
     private:
     DaasAPI* node_;
     bool csv_format_;
+    bool csv_no_header_;
 
 };
 #endif

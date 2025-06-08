@@ -357,11 +357,11 @@ void run_underlay_bandwidth_server(int port)
 
 #ifdef WITH_DAAS
 //Return a node based on the setup.
-DaasAPI* setupNode(daas_setup_t *daas_setup, bool csv_format){
+DaasAPI* setupNode(daas_setup_t *daas_setup, bool csv_format, bool csv_no_header){
 
     //Instantiate a node and set the callback event
     DaasAPI* node = nullptr;
-    auto* dummyHandler = new daasEvent(nullptr, csv_format);  
+    auto* dummyHandler = new daasEvent(nullptr, csv_format, csv_no_header);  
     node = new DaasAPI(dummyHandler, "Dperf");
     static_cast<daasEvent*>(dummyHandler)->setNode(node);
 
@@ -406,9 +406,10 @@ void run_overlay_bandwidth_client(daas_setup_t *daas_setup, program_args_t *test
     int block_size = test->block_size;
     int repetitions = test->repetitions;
     bool csv_format = test->csv_format;
+    bool csv_no_header = test->csv_no_header;
     int pack_num = test->pack_num;
     
-    DaasAPI* node = setupNode(daas_setup, csv_format);
+    DaasAPI* node = setupNode(daas_setup, csv_format, csv_no_header);
     if(node == nullptr) return;
 
     if(node->listNodes().size() == 0) return;
@@ -432,7 +433,7 @@ void run_overlay_bandwidth_client(daas_setup_t *daas_setup, program_args_t *test
 }
 
 void run_overlay_bandwidth_server(daas_setup_t *daas_setup){
-     DaasAPI* node = setupNode(daas_setup, false);
+     DaasAPI* node = setupNode(daas_setup, false, false);
     if(node == nullptr) return;
 
     if(node->listNodes().size() == 0) return;
