@@ -106,7 +106,7 @@ class daasEvent : public IDaasApiEvent {
         printf("Data Sent[MB]\t"); // Mega bytes
         printf("Pkt Err.[%%]\t");
         printf("Transfer Time [ms]\t");
-        printf("Throughput [MB/s]\t[Mb/s]\t[pps]\n");
+        printf("Throughput [MB/s]\t[Mb/s]\t[pps]\t");
         printf("Sender first timestamp\t");
         printf("Local end timestamp\t");
         printf("Remote first timestamp\t");
