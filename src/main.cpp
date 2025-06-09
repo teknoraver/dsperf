@@ -84,8 +84,11 @@ double now_sec()
 
 void start_underlay_server(program_args_t *test)
 {
+    if (test->use_udp) {
+        run_underlay_bandwidth_server_udp(test->port);
+    } else {
         run_underlay_bandwidth_server(test->port);
-        
+    }
 }
 
 
@@ -115,11 +118,15 @@ void start_underlay_client(program_args_t *test)
 
     if (!test->csv_format)
     {
-        printf("dperf started as client to %s:%d with %s size %d\n",
-               ip, port, "block", test->block_size);
+		printf("dperf started as client to %s:%d with %s size %d\n",
+               ip, port, test->use_udp ? "UDP block" : "TCP block", test->block_size);
     }
 
+	if (test->use_udp) {
+		run_underlay_bandwidth_client_udp(test);
+    } else {
         run_underlay_bandwidth_client(test, ip, port);
+    }
 
 }
 #ifdef WITH_DAAS

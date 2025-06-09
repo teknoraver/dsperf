@@ -153,11 +153,13 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
     args->remote_ip[0] = '\0';
     args->overlay_path[0] = '\0';
     args->csv_path[0] = '\0';
+    args->use_udp = false;
 
     static struct option long_options[] = {
         {"underlay", no_argument, 0, 1},
         {"daas", required_argument, 0, 2},
         {"blocksize", required_argument, 0, 3},
+        {"udp", no_argument, 0, 4},
         {0, 0, 0, 0}
     };
 
@@ -292,6 +294,10 @@ void parse_args(int argc, char *argv[], program_args_t *args) {
                     fprintf(stderr, "Error: blocksize must be >= 1\n");
                     exit(EXIT_FAILURE);
                 }
+                break;
+
+			case 4:  // --udp
+                args->use_udp = true;
                 break;
 
             default:

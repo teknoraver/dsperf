@@ -32,6 +32,7 @@ typedef struct {
     int block_size;           // dimensione del blocco (solo client)
     int mtu_size;
     bool mtu_defined;
+    bool use_udp;             // Enabled use for UDP
     int repetitions;          // solo client, default 1
     int pack_num;
     int port;                 // server con underlay: porta di ascolto

@@ -354,6 +354,223 @@ void run_underlay_bandwidth_server(int port)
 
     close(server_sock);
 }
+void run_underlay_bandwidth_client_udp(program_args_t *args)
+{
+    size_t block_size = args->block_size;
+    const char *csv_path = args->csv_path;
+    int repetitions = args->repetitions;
+    bool formatting_output_csv = args->csv_format;
+    bool csv_no_header = args->csv_no_header;
+    int time = args->time;
+    bool time_defined = args->time_defined;
+
+    const char *server_ip = args->remote_ip;
+    int server_port = args->port;
+
+    if (formatting_output_csv && csv_no_header)
+    {
+        printf("#/#\t");
+        printf("Data Block [MB]\t");
+        printf("Protocol\t");
+        printf("Pkt Length [bytes]\t");
+        printf("Header [bytes]\t");
+        printf("Efficiency[%%]\t");
+        printf("Pkts to send\t");
+        printf("Pkt sent\t");
+        printf("Pkt loss\t");
+        printf("Data Sent[MB]\t");
+        printf("Pkt Err.[%%]\t");
+        printf("Transfer Time [ms]\t");
+        printf("Throughput [MB/s]\t[Mb/s]\t[pps]\n");
+    }
+
+    for (int i = 0; i < repetitions; i++)
+    {
+        int sock = socket(AF_INET, SOCK_DGRAM, 0);
+        if (sock < 0)
+        {
+            perror("socket");
+            return;
+        }
+
+        struct sockaddr_in serv_addr = {
+            .sin_family = AF_INET,
+            .sin_port = htons(server_port),
+        };
+        inet_pton(AF_INET, server_ip, &serv_addr.sin_addr);
+
+        int chunk_size = (block_size < 1400) ? block_size : 1400; // safe UDP payload
+        char *buffer = (char *)malloc(chunk_size);
+        memset(buffer, 'A', chunk_size);
+
+        FILE *csv = fopen(csv_path, i == 0 ? "w" : "a");
+        int csv_enabled = 1;
+        if (!csv)
+        {
+            csv_enabled = 0;
+        }
+        if (i == 0 && csv_enabled == 1)
+            fprintf(csv, "Timestamp_ms,Num Pkt,Dimensione Pkt,Throughput_MBps,RTT_ms\n");
+
+        int packet_length = chunk_size;
+        int header_bytes = 28; // UDP+IP header
+        int payload_bytes = chunk_size;
+        double efficiency = ((double)payload_bytes / (payload_bytes + header_bytes)) * 100.0;
+        double packet_to_send = (double)block_size / (double)packet_length;
+
+        if (!formatting_output_csv)
+        {
+            printf("\n[SUMMARY RUN %d/%d]\n", i + 1, repetitions);
+            printf("  Data Block:         %.3f MB\n", block_size / 1.024e6);
+            printf("  Protocol:           UDP/IPv4\n");
+            printf("  Packet Length:      %d bytes\n", packet_length);
+            printf("  Header:             %d bytes\n", header_bytes);
+            printf("  Efficiency:         %.3f %%\n", efficiency);
+            printf("  Pkts to send:     %.3f\n", packet_to_send);
+        }
+
+        int packet_num = 0;
+        int total_sent = 0;
+
+        dperf_timer_t *timer = dperf_timer_create(0);
+        double start_time = get_time_microseconds();
+        dperf_timer_start(timer);
+
+        double start_time_def = get_time_microseconds();
+        double end_time_def = start_time + time * 1e6;
+        double curr_time = start_time_def;
+
+        while ((time_defined && curr_time < end_time_def) || (!time_defined && total_sent < block_size)) {
+
+            if (!dperf_timer_wait_tick(timer)) {
+                break;
+            }
+
+            int to_send = chunk_size;
+            if (!time_defined) {
+                to_send = block_size - total_sent;
+                if (to_send > chunk_size)
+                    to_send = chunk_size;
+            }
+
+            ssize_t sent = sendto(sock, buffer, to_send, 0, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+            if (sent <= 0)
+                break;
+
+            total_sent += sent;
+            packet_num++;
+            if (time_defined)
+                curr_time = get_time_microseconds();
+        }
+
+        double end_time = get_time_microseconds();
+        dperf_timer_stop(timer);
+        dperf_timer_destroy(timer);
+
+        double elapsed_ms = (end_time - start_time) / 1000;
+        double elapsed_s = elapsed_ms / 1000;
+
+        double avg_throughput_MBps = ((double)total_sent / 1.024e6) / elapsed_s;
+        double avg_throughput_Mbps = avg_throughput_MBps * 8.0;
+        double throughput_pps = packet_num / elapsed_s;
+
+        int total_expected = block_size;
+        int total_lost = total_expected - total_sent;
+        double error_pct = total_expected > 0 ? ((double)total_lost / total_expected) * 100.0 : 0.0;
+
+        if (!formatting_output_csv)
+        {
+            printf("  Pkt sent: %d\n", packet_num);
+            printf("  Pkt loss: %d\n", 0);
+            printf("  Data Sent:         %d bytes\n", total_sent);
+            printf("  Pkt Err. %%:      %.3f %%\n", error_pct);
+            printf("  Transfer Time:      %.3f ms\n", elapsed_ms);
+            printf("  Throughput:         %.3f MB/s | %.3f Mbps\n", avg_throughput_MBps, avg_throughput_Mbps);
+            printf("  Throughput (pps):   %.3f pps\n", throughput_pps);
+        }
+        else
+        {
+            printf("'%d/%d\t", i + 1, repetitions);
+            printf("%.3f\t", block_size / 1.024e6);
+            printf("UDP/IPv4\t");
+            printf("%d\t", packet_length);
+            printf("%d\t", header_bytes);
+            printf("%.3f\t", efficiency);
+            printf("%.3f\t", packet_to_send);
+            printf("%d\t", packet_num);
+            printf("%d\t", 0);
+            printf("%.3f\t", ((double)total_sent / 1.024e6));
+            printf("%.3f\t", error_pct);
+            printf("%.3f\t", elapsed_ms);
+            printf("%.3f\t%.3f\t%.3f\n", avg_throughput_MBps, avg_throughput_Mbps, throughput_pps);
+        }
+
+        free(buffer);
+        close(sock);
+        if (csv_enabled == 1)
+            fclose(csv);
+    }
+}
+
+void run_underlay_bandwidth_server_udp(int port)
+{
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0)
+    {
+        perror("socket");
+        return;
+    }
+
+	struct sockaddr_in server_addr;
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(port);
+	server_addr.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+    {
+        perror("bind");
+        close(sockfd);
+        return;
+    }
+
+    printf("[UDP SERVER] Listening on port %d...\n", port);
+
+    char buffer[2048];
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+
+    while (1)
+    {
+        int run_count = 1;
+        int total_received = 0;
+        double start = get_time_microseconds();
+
+        // Receive data continuously (you may want to set timeout logic for ending runs)
+        while (1)
+        {
+            ssize_t recvd = recvfrom(sockfd, buffer, sizeof(buffer), 0,
+                                     (struct sockaddr *)&client_addr, &client_len);
+            if (recvd < 0)
+            {
+                perror("recvfrom");
+                break;
+            }
+
+            total_received += recvd;
+
+            // Optional: Add timeout or packet marker to detect end of transmission
+        }
+
+        double end = get_time_microseconds();
+        double duration = (end - start) / 1e6;
+        double throughput = (duration > 0) ? (total_received / (1024.0 * 1024.0) / duration) : 0;
+
+        printf("[UDP SERVER] Run %d - Time: %.6f s | Bytes: %d | Throughput: %.3f MB/s\n",
+               run_count, duration, total_received, throughput);
+    }
+
+    close(sockfd);
+}
 
 #ifdef WITH_DAAS
 //Return a node based on the setup.
