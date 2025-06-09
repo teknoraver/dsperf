@@ -26,6 +26,7 @@ void print_options(const char *prog_name)
     printf("\nOptions:\n");
     printf("  -S [port]              Run in server mode (default port: 8080)\n");
     printf("  -s <host:port>         Server address and port to connect to (client mode)\n");
+	printf("  --udp                  Use UDP instead of TCP (only in underlay mode)\n");
     printf("  --underlay             Use underlay network mode (IPv4 sockets)\n");
     printf("  --daas                 Use DaaS overlay mode\n");
     printf("  -f <csv_file>          CSV file for results output (optional, client only)\n");
@@ -317,6 +318,10 @@ int validate_args(program_args_t *args, const char *prog_name) {
         fprintf(stderr, "Error: Must specify either --underlay or --daas\n");
         return EXIT_FAILURE;
     }
+	if (args->use_udp && args->layer_mode != 0) {
+		fprintf(stderr, "Error: --udp is only supported in underlay mode\n");
+		return EXIT_FAILURE;
+	}
 
     // Per server: accetta solo parametri base
     if (args->is_sender == 0) {

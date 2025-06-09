@@ -66,6 +66,7 @@ Overlay brings incontrovertible benefits in terms of resilience, versatility and
 | `--driver`               | !! Specifics the driver to use  |
 | `--daas`              | !! Runs the test in overlay mode (daas)     |
 | `--underlay`             | Runs the test in underlay mode             |
+| `--udp`                  | Runs the test using UDP instead of TCP (only valid in underlay mode) |
 | `--blocksize <bytes>`    | Client sets total data to transfer (in bytes) |
 | `-c <packet_num>`        | Set how many packets send (daas mode) |
 | `-n <repetitions>`       | Specify how many times the test have to run               |
@@ -152,6 +153,14 @@ sed 's/\\./,/g' data_100M.csv > datav_100M.csv
 or:
 
 ./dperf --underlay -s 127.0.0.1:5001 --blocksize 1024000000 -y -n 10 | sed 's/\\./,/g' > datav_100M.csv
+
+Transfer of a data block of 10 MB using UDP
+
+### start server
+./dperf -S 5001 --underlay --udp
+
+### start client
+./dperf --underlay --udp -s 127.0.0.1:5001 --blocksize 1024000000 -y -n 10 > data_100M_udp.csv
 
 ### start client (overlay mode)
 
