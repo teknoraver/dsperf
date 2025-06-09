@@ -19,7 +19,7 @@
 # No use of any Covered Software is authorized under this License except under this disclaimer.
 
 
-source utils.sh
+source models/utils.sh
 
 ################
 
@@ -40,7 +40,8 @@ OUTPUT_FOLDER=$5
 ##########################################
 DATA_FILE=$(date +"%d%B%H%M%S")
 
-FILE_NAME="$1_$3_${DATA_FILE}_netperf.csv"
+#FILE_NAME="_$3_${DATA_FILE}_netperf.csv"
+FILE_NAME="$3_netperf.csv"
 ##########################################
 
 REGEX1='s/\./,/g'
@@ -48,12 +49,12 @@ REGEX2='s/^\([^ ]*\) \([^ ]*\) \([^ ]*\) \([^ ]*\) \([^ ]*\)/\4 $BYTES_TOTALI \5
 
 if [ ! -f "$FILE_NAME" ]; then
   #echo "Running a test with netperf"
-  echo "$FILE_NAME $FILE_NAME $FILE_NAME $FILE_NAME $FILE_NAME $FILE_NAME" | tr ' ' '\t' > "$OUTPUT_FOLDER/$FILE_NAME"
-  echo -e "transfer_time[s] bytes_transferred[bytes] throughout[Mbps] TX_buffer_size[bytes] RX_buffer_size[bytes] mss[bytes]" | tr ' ' '\t' >> "$OUTPUT_FOLDER/$FILE_NAME"
+  echo "$FILE_NAME $FILE_NAME $FILE_NAME $FILE_NAME $FILE_NAME $FILE_NAME" | tr ' ' '\t' > "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
+  echo -e "transfer_time[s] bytes_transferred[bytes] throughout[Mbps] TX_buffer_size[bytes] RX_buffer_size[bytes] mss[bytes]" | tr ' ' '\t' >> "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
 fi
 
 # Running a test with netperf
 for i in $(seq 1 $SAMPLES); do
 	read C1 C2 C3 C4 C5 <<< $(netperf -H "$IP_DEST" -p 9002 -l -"$BYTES_TOTALI" -P 0 -- -m 1448)
-	echo "$C4 $BYTES_TOTALI $C5 $C1 $C2 $C3" | sed "$REGEX1" | tr ' ' '\t' >> "$OUTPUT_FOLDER/$FILE_NAME"
+	echo "$C4 $BYTES_TOTALI $C5 $C1 $C2 $C3" | sed "$REGEX1" | tr ' ' '\t' >> "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
 done

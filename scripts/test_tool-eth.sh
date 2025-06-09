@@ -24,25 +24,41 @@
 # The model to run is defined in folder: "models\validation_ipv4".
 # The execution environment has "Ethernet" activated and the other interfaces are disabled. 
 
+source models/utils.sh
+
 if [ $# -le 1 ]; then
   echo "Use: $0 <loopback_addr> <samples> <output_folder_name>"
   exit 1
 fi
 
+export SCRIPT_BASE=$(pwd)
+
+echo "Base script: $SCRIPT_BASE"
+
 # Level 0 script
 # //
 LOOPBACK_ADDRESS=$1
 SAMPLES=$2
-OUTPUT_FOLDER="results\$3"
+OUTPUT_NAME=$3
+OUTPUT_FOLDER="results/$3"
+
+
+if [ ! -d "$SCRIPT_BASE/results" ]; then
+  mkdir "$SCRIPT_BASE/results"
+fi
+
+
 if [ ! -d "$OUTPUT_FOLDER" ]; then
   mkdir $OUTPUT_FOLDER
 else
-# deletes all files in folder...
+  rm -R $OUTPUT_FOLDER
+  mkdir $OUTPUT_FOLDER
+  # deletes all files in folder...
 fi
 
 # Model settings
 # //
-TEST_MODEL_FOLDER="models\validation_ipv4"  
+TEST_MODEL_FOLDER="validation-ipv4"
 
 # Environment settings
 # //
@@ -51,12 +67,12 @@ TEST_MODEL_FOLDER="models\validation_ipv4"
 
 
 # runs model for each cluster we need
-./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 10k "../$OUTPUT_FOLDER"
-./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 100k "../$OUTPUT_FOLDER"
-./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 500k "../$OUTPUT_FOLDER"
-./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 1M "../$OUTPUT_FOLDER"
-./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 5M "../$OUTPUT_FOLDER"
-./run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS $SAMPLES 10M "../$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 10k $SAMPLES  "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 100k $SAMPLES  "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 500k $SAMPLES "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 1M $SAMPLES "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 5M $SAMPLES "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 10M $SAMPLES "$OUTPUT_FOLDER"
 
 # Environment reset
 # //
@@ -66,4 +82,5 @@ TEST_MODEL_FOLDER="models\validation_ipv4"
 
 # Merge all csv files located in OUTPUT_FOLDER
 # //
-# // merge_files $OUTPUT_FOLDER
+DATA_FILE=$(date +"%d%B%H%M%S")
+merge_files $OUTPUT_FOLDER "${SCRIPT_BASE}/tool_eth0_${OUTPUT_NAME}_${SAMPLES}_${DATA_FILE}.csv"

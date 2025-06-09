@@ -18,7 +18,7 @@
 # This disclaimer of warranty constitutes an essential part of this License.  
 # No use of any Covered Software is authorized under this License except under this disclaimer.
 
-source utils.sh
+source models/utils.sh
 
 ################
 
@@ -37,7 +37,8 @@ OUTPUT_FOLDER=$5
 ##########################################
 DATA_FILE=$(date +"%d%B%H%M%S")
 
-FILE_NAME="$1_$3_${DATA_FILE}_nuttcp.csv"
+#FILE_NAME="_$3_${DATA_FILE}_nuttcp.csv"
+FILE_NAME="$3_nuttcp.csv"
 ##########################################
 
 REGEX1='s/^ *([0-9.]+) MB *\/ *([0-9.]+) sec *= *([0-9.]+) Mbps.*/\2 \3/'
@@ -47,10 +48,10 @@ REGEX2='s/\./,/g'
 if [ ! -f "$FILE_NAME" ]; then
   #echo "Running a test with nuttcp"
   echo -e "$FILE_NAME\t$FILE_NAME" > "$OUTPUT_FOLDER/$FILE_NAME"
-  echo -e "transfer_time[s] throughout[Mbps]" | tr ' ' '\t' >> "$OUTPUT_FOLDER/$FILE_NAME" 
+  echo -e "transfer_time[s] throughout[Mbps]" | tr ' ' '\t' >> "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME" 
 fi
 
 # Running a test with nuttcp
 for i in $(seq 1 $SAMPLES); do
-	nuttcp -p 9001 -l "$BYTES_TOTALI" -n 1 "$IP_DEST" | sed -E "$REGEX1" | tr ' ' '\t' | sed -E "$REGEX2" >> "$OUTPUT_FOLDER/$FILE_NAME"
+	nuttcp -p 9001 -l "$BYTES_TOTALI" -n 1 "$IP_DEST" | sed -E "$REGEX1" | tr ' ' '\t' | sed -E "$REGEX2" >> "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
 done

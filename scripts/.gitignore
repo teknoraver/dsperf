@@ -1,0 +1,7 @@
+.vscode
+*.o
+*.exe
+.DS_Store
+desktop.ini
+*.csv
+

@@ -18,7 +18,7 @@
 # This disclaimer of warranty constitutes an essential part of this License.  
 # No use of any Covered Software is authorized under this License except under this disclaimer.
 
-source utils.sh
+source $SCRIPT_BASE/models/utils.sh
 
 ################
 
@@ -37,10 +37,12 @@ IP_DEST=$2
 BYTES_TOTALI=$(convert_to_bytes $3)
 SAMPLES=$4
 OUTPUT_FOLDER=$5
+
 ##########################################
 DATA_FILE=$(date +"%d%B%H%M%S")
 
-FILE_NAME="$1_$3_${DATA_FILE}_dperf.csv"
+#FILE_NAME="_$3_${DATA_FILE}_dperf.csv"
+FILE_NAME="$3_dperf.csv"
 ##########################################
 
 REGEX1='s/^\([^,]*\),[^,]*,[^,]*,[^,]*,[^,]*,/\1,/'
@@ -50,9 +52,9 @@ REGEX2=#'s/\./,/g'
 for i in $(seq 1 $SAMPLES); do
   if [ ! -f "$OUTPUT_FOLDER/$FILE_NAME" ]; then
     #echo "Running a test with dsperf"
-    echo -e "$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME" > "$OUTPUT_FOLDER/$FILE_NAME"
-    dperf --underlay -s "$IP_DEST":5002 --blocksize "$BYTES_TOTALI" -y 1 -n 1 | sed 's/\./,/g' >> "$OUTPUT_FOLDER/$FILE_NAME"
+    echo -e "$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME\t$FILE_NAME" > "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
+    dperf --underlay -s "$IP_DEST":5002 --blocksize "$BYTES_TOTALI" -y 1 -n 1 | sed 's/\./,/g' >> "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
   else
-    dperf --underlay -s "$IP_DEST":5002 --blocksize "$BYTES_TOTALI" -y 0 -n 1 | sed 's/\./,/g' >> "$OUTPUT_FOLDER/$FILE_NAME"
+    dperf --underlay -s "$IP_DEST":5002 --blocksize "$BYTES_TOTALI" -y 0 -n 1 | sed 's/\./,/g' >> "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
   fi
 done

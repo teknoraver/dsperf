@@ -29,13 +29,14 @@ fi
 
 
 SCRIPTS_FOLDER=$1
+
 OPTIONS=("${@:1}")
 
 
 if [ -d $FOLDER ]; then
 	echo "########################################################"
 	echo "#### Execution Scripts in forlder '$SCRIPTS_FOLDER' ####"
-	for script in $SCRIPTS_FOLDER/*;
+	for script in $SCRIPT_BASE/models/$SCRIPTS_FOLDER/*;
 	do
 		if [ -f "$script" ] && [ -x "$script" ]; then
 			echo "#### Execution Scripts '$script' ####" 

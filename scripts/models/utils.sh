@@ -43,6 +43,6 @@ merge_files() {
 
   echo "${file_array[@]}"
 
-  paste ${file_array[@]} > new_file.csv
+  paste ${file_array[@]} > $2
 
 }

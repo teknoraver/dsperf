@@ -18,7 +18,7 @@
 # This disclaimer of warranty constitutes an essential part of this License.  
 # No use of any Covered Software is authorized under this License except under this disclaimer.
 
-source utils.sh
+source $SCRIPT_BASE/models/utils.sh
 
 ################
 
@@ -37,7 +37,8 @@ OUTPUT_FOLDER=$5
 ##########################################
 DATA_FILE=$(date +"%d%B%H%M%S")
 
-FILE_NAME="$1_$3_${DATA_FILE}_iperf.csv"
+#FILE_NAME="_$3_${DATA_FILE}_iperf.csv"
+FILE_NAME="$3_iperf.csv"
 ##########################################
 
 REGEX1='s/^ *([0-9.]+) MB *\/ *([0-9.]+) sec *= *([0-9.]+) Mbps.*/\2 \1 \3/'
@@ -45,11 +46,11 @@ REGEX1='s/^ *([0-9.]+) MB *\/ *([0-9.]+) sec *= *([0-9.]+) Mbps.*/\2 \1 \3/'
 # Running a test with iperf
 if [ ! -f "$FILE_NAME" ]; then
   #echo "Running a test with iperf"
-  echo "$FILE_NAME $FILE_NAME" | tr ' ' '\t' > "$OUTPUT_FOLDER/$FILE_NAME"
-  echo "transfer_time[s] throughout[MBps]" | tr ' ' '\t' >> "$OUTPUT_FOLDER/$FILE_NAME"
+  echo "$FILE_NAME $FILE_NAME" | tr ' ' '\t' > "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
+  echo "transfer_time[s] throughout[MBps]" | tr ' ' '\t' >> "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
 fi
 
 # Running a test with iperf
 for i in $(seq 1 $SAMPLES); do
-  iperf -c "$IP_DEST" -p 5001 -n "$BYTES_TOTALI" -f M | tail -n 1 | awk '{split($3,a,"-"); durata=a[2]; banda=$7; print durata, banda}'| tr ' ' '\t' | sed 's/\./,/g' >> "$OUTPUT_FOLDER/$FILE_NAME"
+  iperf -c "$IP_DEST" -p 5001 -n "$BYTES_TOTALI" -f M | tail -n 1 | awk '{split($3,a,"-"); durata=a[2]; banda=$7; print durata, banda}'| tr ' ' '\t' | sed 's/\./,/g' >> "$SCRIPT_BASE/$OUTPUT_FOLDER/$FILE_NAME"
 done
