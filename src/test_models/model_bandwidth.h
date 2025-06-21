@@ -21,6 +21,8 @@
 
 void run_underlay_bandwidth_client(program_args_t *test, const char *server_ip, int server_port);
 void run_underlay_bandwidth_server(int port);
+void run_underlay_bandwidth_client_udp(program_args_t *args);
+void run_underlay_bandwidth_server_udp(int port);
 
 #ifdef WITH_DAAS
 void run_overlay_bandwidth_client(daas_setup_t *setup, program_args_t *test);
