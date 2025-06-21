@@ -25,7 +25,7 @@
 # The model to run is defined with the scripts (run_*) located in folder TEST_MODEL_FOLDER
 
 
-source models/utils.sh
+. models/utils.sh
 
 if [ $# -le 1 ]; then
   echo "Use: $0 <loopback_addr> <samples> <output_folder_name>"
@@ -50,10 +50,10 @@ fi
 
 
 if [ ! -d "$OUTPUT_FOLDER" ]; then
-  mkdir $OUTPUT_FOLDER
+  mkdir "$OUTPUT_FOLDER"
 else
-  rm -R $OUTPUT_FOLDER
-  mkdir $OUTPUT_FOLDER
+  rm -R "$OUTPUT_FOLDER"
+  mkdir "$OUTPUT_FOLDER"
   # deletes all files in folder...
 fi
 
@@ -69,10 +69,10 @@ TEST_MODEL_FOLDER="case_1"
 
 # runs model for each cluster we need
 
-./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 10k $SAMPLES "$OUTPUT_FOLDER"
-#./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 5M $SAMPLES "$OUTPUT_FOLDER"
-#./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 100M $SAMPLES "$OUTPUT_FOLDER"
-#./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 300M $SAMPLES "$OUTPUT_FOLDER"
+./models/run_test.sh "$TEST_MODEL_FOLDER" "$LOOPBACK_ADDRESS" 10k "$SAMPLES" "$OUTPUT_FOLDER"
+#./models/run_test.sh "$TEST_MODEL_FOLDER" "$LOOPBACK_ADDRESS" 5M "$SAMPLES" "$OUTPUT_FOLDER"
+#./models/run_test.sh "$TEST_MODEL_FOLDER" "$LOOPBACK_ADDRESS" 100M "$SAMPLES" "$OUTPUT_FOLDER"
+#./models/run_test.sh "$TEST_MODEL_FOLDER" "$LOOPBACK_ADDRESS" 300M "$SAMPLES" "$OUTPUT_FOLDER"
 
 
 # Environment reset

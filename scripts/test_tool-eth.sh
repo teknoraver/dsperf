@@ -24,7 +24,7 @@
 # The model to run is defined in folder: "models\validation_ipv4".
 # The execution environment has "Ethernet" activated and the other interfaces are disabled. 
 
-source models/utils.sh
+. models/utils.sh
 
 if [ $# -le 1 ]; then
   echo "Use: $0 <loopback_addr> <samples> <output_folder_name>"
