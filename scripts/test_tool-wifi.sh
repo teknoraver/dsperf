@@ -19,13 +19,12 @@
 # No use of any Covered Software is authorized under this License except under this disclaimer.
 
 
-# Case_1:
-# defines an underlay/overlay test using Ipv4 and DaaS.INET4
-# daas node is configurable by "daas_inet4.ini" located in the model folder
-# The model to run is defined with the scripts (run_*) located in folder TEST_MODEL_FOLDER
+# tool-eth:
+# defines an underlay test using Ipv4 to validate dsperf tool.
+# The model to run is defined in folder: "models\validation_ipv4".
+# The execution environment has "Ethernet" activated and the other interfaces are disabled. 
 
-
-. models/utils.sh
+source models/utils.sh
 
 if [ $# -le 1 ]; then
   echo "Use: $0 <loopback_addr> <samples> <output_folder_name>"
@@ -50,16 +49,16 @@ fi
 
 
 if [ ! -d "$OUTPUT_FOLDER" ]; then
-  mkdir "$OUTPUT_FOLDER"
+  mkdir $OUTPUT_FOLDER
 else
-  rm -R "$OUTPUT_FOLDER"
-  mkdir "$OUTPUT_FOLDER"
+  rm -R $OUTPUT_FOLDER
+  mkdir $OUTPUT_FOLDER
   # deletes all files in folder...
 fi
 
 # Model settings
 # //
-TEST_MODEL_FOLDER="case_1" 
+TEST_MODEL_FOLDER="validation-ipv4"
 
 # Environment settings
 # //
@@ -68,12 +67,12 @@ TEST_MODEL_FOLDER="case_1"
 
 
 # runs model for each cluster we need
-
-./models/run_test.sh "$TEST_MODEL_FOLDER" "$LOOPBACK_ADDRESS" 10k "$SAMPLES" "$OUTPUT_FOLDER"
-#./models/run_test.sh "$TEST_MODEL_FOLDER" "$LOOPBACK_ADDRESS" 5M "$SAMPLES" "$OUTPUT_FOLDER"
-#./models/run_test.sh "$TEST_MODEL_FOLDER" "$LOOPBACK_ADDRESS" 100M "$SAMPLES" "$OUTPUT_FOLDER"
-#./models/run_test.sh "$TEST_MODEL_FOLDER" "$LOOPBACK_ADDRESS" 300M "$SAMPLES" "$OUTPUT_FOLDER"
-
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 10k $SAMPLES  "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 100k $SAMPLES  "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 500k $SAMPLES "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 1M $SAMPLES "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 5M $SAMPLES "$OUTPUT_FOLDER"
+./models/run_test.sh $TEST_MODEL_FOLDER $LOOPBACK_ADDRESS 10M $SAMPLES "$OUTPUT_FOLDER"
 
 # Environment reset
 # //
@@ -84,4 +83,4 @@ TEST_MODEL_FOLDER="case_1"
 # Merge all csv files located in OUTPUT_FOLDER
 # //
 DATA_FILE=$(date +"%d%B%H%M%S")
-merge_files $OUTPUT_FOLDER "${SCRIPT_BASE}/tool_eth0_${OUTPUT_NAME}_${SAMPLES}_${DATA_FILE}.csv"
+merge_files $OUTPUT_FOLDER "${SCRIPT_BASE}/tool_wlan0_${OUTPUT_NAME}_${SAMPLES}_${DATA_FILE}.csv"

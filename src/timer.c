@@ -2,8 +2,8 @@
 #include "timer.h"
 
 
-static void *dperf_timer_thread_func(void *arg) {
-    dperf_timer_t *t = (dperf_timer_t *)arg;
+static void *dsperf_timer_thread_func(void *arg) {
+    dsperf_timer_t *t = (dsperf_timer_t *)arg;
 
     struct timespec ts;
     while (1) {
@@ -37,8 +37,8 @@ static void *dperf_timer_thread_func(void *arg) {
     return NULL;
 }
 
-dperf_timer_t *dperf_timer_create(unsigned int interval_us) {
-    dperf_timer_t *t = malloc(sizeof(dperf_timer_t));
+dsperf_timer_t *dsperf_timer_create(unsigned int interval_us) {
+    dsperf_timer_t *t = malloc(sizeof(dsperf_timer_t));
     if (!t)
         return NULL;
 
@@ -50,23 +50,23 @@ dperf_timer_t *dperf_timer_create(unsigned int interval_us) {
     return t;
 }
 
-void dperf_timer_destroy(dperf_timer_t *t) {
+void dsperf_timer_destroy(dsperf_timer_t *t) {
     if (!t) return;
-    dperf_timer_stop(t);
+    dsperf_timer_stop(t);
     pthread_mutex_destroy(&t->mutex);
     pthread_cond_destroy(&t->cond);
     free(t);
 }
 
-void dperf_timer_start(dperf_timer_t *t) {
+void dsperf_timer_start(dsperf_timer_t *t) {
     if (!t) return;
     pthread_mutex_lock(&t->mutex);
     t->running = true;
     pthread_mutex_unlock(&t->mutex);
-    pthread_create(&t->thread, NULL, dperf_timer_thread_func, t);
+    pthread_create(&t->thread, NULL, dsperf_timer_thread_func, t);
 }
 
-void dperf_timer_stop(dperf_timer_t *t) {
+void dsperf_timer_stop(dsperf_timer_t *t) {
     if (!t) return;
     pthread_mutex_lock(&t->mutex);
     t->running = false;
@@ -75,7 +75,7 @@ void dperf_timer_stop(dperf_timer_t *t) {
     pthread_join(t->thread, NULL);
 }
 
-bool dperf_timer_wait_tick(dperf_timer_t *t) {
+bool dsperf_timer_wait_tick(dsperf_timer_t *t) {
     if (!t) return false;
 
     pthread_mutex_lock(&t->mutex);

@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+#include <unistd.h>
 
 #ifdef WITH_DAAS
 #include "daas.hpp"
@@ -77,7 +78,7 @@ class daasEvent : public IDaasApiEvent {
 
     public:
 
-    daasEvent(DaasAPI* node, bool csv_format, bool csv_no_header) : node_(node), csv_format_(csv_format), csv_no_header_(csv_no_header) {}
+    daasEvent(DaasAPI* node, bool csv_format, bool csv_no_header, bool csv_enabled, char* csv_file,  int* terminator) : node_(node), csv_format_(csv_format), csv_no_header_(csv_no_header), csv_enabled_(csv_enabled), csv_file_(csv_file), terminator_(terminator) {}
     void dinAcceptedEvent(din_t din) override {}
     void ddoReceivedEvent(int payload_size, typeset_t typeset, din_t din) override {
         DDO *pk;
@@ -129,6 +130,54 @@ class daasEvent : public IDaasApiEvent {
             throughput_pps = dperf_info.remote_data_counter / elapsed_sec;
         }
 
+        if(csv_enabled_){
+        bool file_exists = (access(csv_file_, F_OK) == 0);
+        
+        FILE *file = fopen(csv_file_, "a+");
+        if (file != NULL) {
+            if (!file_exists) {
+                fprintf(file, "#/#\t");
+                fprintf(file, "Data_Block_[MB]\t");
+                fprintf(file, "Protocol\t");
+                fprintf(file, "Pkt_Length_[bytes]\t");
+                fprintf(file, "Header_[bytes]\t");
+                fprintf(file, "Efficiency[%%]\t");
+                fprintf(file, "Pkts_to_send\t");
+                fprintf(file, "Pkt_sent\t");
+                fprintf(file, "Pkt_loss\t");
+                fprintf(file, "Data_Sent[MB]\t");
+                fprintf(file, "Pkt_Err.[%%]\t");
+                fprintf(file, "Transfer_Time_[ms]\t");
+                fprintf(file, "Throughput_[MB/s]\t[Mb/s]\t[pps]\t");
+                fprintf(file, "Sender_first_timestamp\t");
+                fprintf(file, "Local_end_timestamp\t");
+                fprintf(file, "Remote_first_timestamp\t");
+                fprintf(file, "Remote_last_timestamp\n");
+            }
+            
+            fprintf(file, "%d\t", 1);
+            fprintf(file, "%.3f\t", (double)block_size / 1.024e6);
+            fprintf(file, "IPv4\t");
+            fprintf(file, "%d\t", dperf_info.remote_pkt_counter > 0 ? (block_size / dperf_info.remote_pkt_counter) : 0);
+            fprintf(file, "40\t");
+            double efficiency = ((double)block_size / (block_size + 40 * dperf_info.remote_pkt_counter)) * 100.0;
+            fprintf(file, "%.3f\t", efficiency);
+            fprintf(file, "%.3f\t", (double)block_size / (block_size / (dperf_info.remote_pkt_counter > 0 ? dperf_info.remote_pkt_counter : 1)));
+            fprintf(file, "%d\t", dperf_info.remote_pkt_counter);
+            fprintf(file, "%d\t", packets - dperf_info.remote_pkt_counter);
+            fprintf(file, "%.3f\t", (double)dperf_info.remote_data_counter / 1.024e6);
+            fprintf(file, "%.3f\t", error_pct);
+            fprintf(file, "%llu\t", (unsigned long long)elapsed);
+            fprintf(file, "%.3f\t%.3f\t%.3f\t", throughput_MBps, throughput_Mbps, throughput_pps);
+            fprintf(file, "%.3f\t", (double)dperf_info.sender_first_timestamp);
+            fprintf(file, "%.3f\t", (double)dperf_info.local_end_timestamp);
+            fprintf(file, "%.3f\t", (double)dperf_info.remote_first_timestamp);
+            fprintf(file, "%.3f\n", (double)dperf_info.remote_last_timestamp);
+            
+            fclose(file);
+        }
+    }
+
         if (!csv_format_) {
         printf("  Pkt sent: %d\n", packets);
         printf("  Pkt loss: %d\n", packets - dperf_info.remote_pkt_counter);
@@ -161,7 +210,13 @@ class daasEvent : public IDaasApiEvent {
         printf("%.3f\t", (double)dperf_info.local_end_timestamp);
         printf("%.3f\t", (double)dperf_info.remote_first_timestamp);
         printf("%.3f\t", (double)dperf_info.remote_last_timestamp);
+
     } 
+
+
+    if (terminator_ != nullptr) {
+        *terminator_ = 1;
+     }
     }
 
     void setNode(DaasAPI* node) {
@@ -171,8 +226,12 @@ class daasEvent : public IDaasApiEvent {
     DaasAPI* node_;
     bool csv_format_;
     bool csv_no_header_;
+    bool csv_enabled_;
+    char* csv_file_;
+    int* terminator_;
 
 };
+
 #endif
 
 

@@ -60,7 +60,6 @@
 #include "system_info.h"
 #include "test_models/model_bandwidth.h"
 #include "dperf_local.hpp"
-#include "rtt_runner.h"
 
 // Constants for configuration
 
@@ -167,8 +166,8 @@ int main(int argc, char *argv[])
         }
     }
 #endif
-    if (args.csv_enabled)
-{
+    /*if (args.csv_enabled)
+    {
     FILE *f = fopen(args.csv_path, "w");
     if (f == NULL)
     {
@@ -193,7 +192,7 @@ int main(int argc, char *argv[])
     fprintf(f, "Layer Version: %s\n", args.layer_mode == 0 ? "IPv4 plain sockets" : "DaaS Layer");
 
     fclose(f);
-}
+    }*/
 
     if (args.layer_mode == 0)
     {

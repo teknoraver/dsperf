@@ -114,6 +114,7 @@ CSV File contains those informations:
 
 ## DaaS Ini File Example
 
+```ini
 [LOCAL]
 DIN=101                         //Local Din
 LINK_0=2                        //LINK_TYPE (check DaaS API for info)
@@ -123,6 +124,7 @@ URI_0=127.0.0.1:3001            //URI
 REMOTE_DIN_0=102                //REMOTE NODE TO MAP
 REMOTE_LINK_0=2                 //LINK_TYPE
 REMOTE_URI_0=127.0.0.1:3002     //REMOTE URI
+```
 
 ## Compile
 
@@ -143,16 +145,22 @@ Then you can run the executable `dperf`!
 Transfer of a data block of 10 MB
 
 ### start server
+```bash
 ./dperf -S 5001 --underlay
+```
 
 ### start client
+```bash
 ./dperf --underlay -s 127.0.0.1:5001 --blocksize 1024000000 -y -n 10 > data_100M.csv
 
 sed 's/\\./,/g' data_100M.csv > datav_100M.csv
+```
 
 or:
 
+```bash
 ./dperf --underlay -s 127.0.0.1:5001 --blocksize 1024000000 -y -n 10 | sed 's/\\./,/g' > datav_100M.csv
+```
 
 Transfer of a data block of 10 MB using UDP
 
@@ -164,8 +172,12 @@ Transfer of a data block of 10 MB using UDP
 
 ### start client (overlay mode)
 
+```bash
 ./dperf -s 102 --daas node_setup.ini --blocksize 1024000000
+```
 
 ### start server (overlay mode)
 
+```bash
 ./dperf -S 101 --daas node_setup2.ini
+```
