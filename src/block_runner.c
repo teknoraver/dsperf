@@ -37,16 +37,16 @@
 
 double now_in_seconds()
 {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec + (tv.tv_usec / 1000000.0);
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec + (ts.tv_nsec / 1e9);
 }
 
 static double get_time_microseconds()
 {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1e6) + tv.tv_usec;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (ts.tv_sec * 1e6) + (ts.tv_nsec / 1e3);
 }
 
 void run_block_client(const char *server_ip, int server_port, size_t block_size, size_t mtu, const char *csv_path, int repetitions, bool formatting_output_csv, bool csv_no_header)

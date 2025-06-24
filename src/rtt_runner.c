@@ -37,9 +37,9 @@
 
 static double get_time_microseconds()
 {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1e6) + tv.tv_usec;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (ts.tv_sec * 1e6) + (ts.tv_nsec / 1e3);
 }
 
 void run_rtt_server(int port, int pkt_size)
