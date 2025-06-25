@@ -3,4 +3,9 @@
 *.exe
 .DS_Store
 desktop.ini
-
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+/dperf
+/src/version.h
